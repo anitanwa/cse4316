@@ -14,7 +14,5 @@
 *.hst
 *.ver
 
-# Compiled PDFs are build outputs; regenerate from source with pdflatex+bibtex.
-*.pdf
-# ...except the retained historical reference document.
-!test plan/ieee829mtp.pdf
+# Compiled PDFs are committed as deliverables; regenerate from source with
+# pdflatex+bibtex (see README.md).
