@@ -89,7 +89,7 @@ TypeScript.
 \subsection{Z.API \& Z.Store}
 \textbf{Interface:} \texttt{POST /forms} (EI-01), \texttt{GET /jobs/\{id\}},
 \texttt{GET /export}. \textbf{Information:} \texttt{Record\{form\_id, field\_id,
-value, source\in\{auto,reviewed\}, model\_version, reviewer\_id?\}} in PostgreSQL;
+value, source:auto/reviewed, model\_version, reviewer\_id?\}} in PostgreSQL;
 images in on-prem object storage (SE-01). Authentication via the on-prem IdP (SE-02).
 \subsection{Z.ReviewUI \& Z.Audit}
 \textbf{Z.ReviewUI:} React screen showing crop + proposed value with keyboard

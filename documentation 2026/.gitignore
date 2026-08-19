@@ -1,0 +1,20 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.bbl
+*.blg
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.dvi
+*.hst
+*.ver
+
+# Compiled PDFs are build outputs; regenerate from source with pdflatex+bibtex.
+*.pdf
+# ...except the retained historical reference document.
+!test plan/ieee829mtp.pdf
