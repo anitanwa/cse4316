@@ -5,8 +5,17 @@
 \usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
 \usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
 \usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \allsectionsfont{\color{accentcolor}\scshape\selectfont}
 \definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\tikzset{
+  mod/.style={draw, rounded corners, fill=white, minimum height=8mm, minimum width=27mm, font=\footnotesize, align=center, inner sep=2pt},
+  ext/.style={draw, dashed, rounded corners, fill=black!4, minimum height=8mm, minimum width=24mm, font=\footnotesize\itshape, align=center, inner sep=2pt},
+  band/.style={draw=accentcolor!45, rounded corners, inner sep=3.5mm},
+  llbl/.style={font=\small\bfseries, text=accentcolor, align=left},
+  flow/.style={-{Latex[length=2mm]}, thick, draw=accentcolor!80},
+  fl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+}
 \newcommand{\teamname}{Team Fullstack}
 \newcommand{\productname}{CivicPulse Community Service-Request Dashboard}
 \newcommand{\coursename}{CSE 4317: Senior Design II}
@@ -51,7 +60,34 @@ Context, Composition, Information, Interface, Interaction \& State, Algorithm,
 Resource per IEEE 1016; omitted where not applicable.
 
 \section{System Overview}
-\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+\node[ext] (res) at (0,1.5) {Resident};
+\node[ext] (staff) at (0,-1.5) {Staff};
+\node[mod] (xrp) at (3.3,1.5) {X.ResidentPortal};
+\node[mod] (xsd) at (3.3,-1.5) {X.StaffDashboard};
+\node[mod] (yapi) at (6.9,0) {Y.APIGateway};
+\node[ext] (sso) at (6.9,2.5) {City SSO (OIDC)};
+\node[mod] (yreq) at (10.6,0) {Y.RequestService};
+\node[mod] (ynot) at (10.6,-2.6) {Y.Notification Service};
+\node[mod] (zds) at (14.6,1.5) {Z.Datastore};
+\node[mod] (zos) at (14.6,0.2) {Z.ObjectStore};
+\node[mod] (zint) at (14.6,-1.1) {Z.Integrations};
+\node[ext] (smtp) at (14.6,-2.6) {SMTP relay};
+\node[ext] (mapapi) at (18.4,-1.1) {Mapping API};
+\draw[flow] (res) -- (xrp) node[fl,pos=0.5]{submit / track};
+\draw[flow] (staff) -- (xsd) node[fl,pos=0.5]{triage};
+\draw[flow] (xrp) -- (yapi) node[fl,pos=0.55]{REST};
+\draw[flow] (xsd) -- (yapi);
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (yapi) -- (sso) node[fl,pos=0.5]{OIDC};
+\draw[flow] (yapi) -- (yreq) node[fl,pos=0.5]{authorized};
+\draw[flow] (yreq) -- (zds) node[fl,pos=0.5]{requests};
+\draw[flow] (yreq) -- (zos) node[fl,pos=0.55]{photos};
+\draw[flow] (yreq) -- (zint) node[fl,pos=0.6]{geocode};
+\draw[flow] (yreq) -- (ynot) node[fl,pos=0.5]{status change};
+\draw[flow] (ynot) -- (smtp) node[fl,pos=0.5]{email};
+\draw[flow] (zint) -- (mapapi) node[fl,pos=0.5]{geocode API};
+\end{tikzpicture}}
 \caption{Three-tier deployment carried forward from the ADS}\end{figure}
 Frontend: React/TypeScript SPAs served by a CDN/reverse proxy. Backend: containerized
 Node/TypeScript (NestJS) API. Data: managed PostgreSQL + PostGIS and object storage.

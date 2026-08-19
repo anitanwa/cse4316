@@ -5,8 +5,17 @@
 \usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
 \usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
 \usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \allsectionsfont{\color{accentcolor}\scshape\selectfont}
 \definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\tikzset{
+  mod/.style={draw, rounded corners, fill=white, minimum height=8mm, minimum width=27mm, font=\footnotesize, align=center, inner sep=2pt},
+  ext/.style={draw, dashed, rounded corners, fill=black!4, minimum height=8mm, minimum width=24mm, font=\footnotesize\itshape, align=center, inner sep=2pt},
+  band/.style={draw=accentcolor!45, rounded corners, inner sep=3.5mm},
+  llbl/.style={font=\small\bfseries, text=accentcolor, align=left},
+  flow/.style={-{Latex[length=2mm]}, thick, draw=accentcolor!80},
+  fl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+}
 \newcommand{\teamname}{Team Nimbus}
 \newcommand{\productname}{AquaGuard Smart Water-Leak Monitor}
 \newcommand{\coursename}{CSE 4317: Senior Design II}
@@ -51,7 +60,31 @@ Context, Composition, Information, Interface, Interaction \& State, Algorithm,
 Resource per IEEE 1016; omitted where not applicable.
 
 \section{System Overview}
-\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+\node[mod] (xsens) at (2.6,0.8) {X.Sensing};
+\node[mod] (xble)  at (2.6,-0.8){X.BLEPeripheral};
+\node[mod] (ybc)  at (6.4,2.4) {Y.BLECentral};
+\node[mod] (yae)  at (6.4,0.8) {Y.AlertEngine};
+\node[mod] (yls)  at (6.4,-0.8){Y.LocalStore};
+\node[mod] (yui)  at (6.4,-2.4){Y.UI};
+\node[mod] (zpush) at (10.2,2.4){Z.PushService};
+\node[mod] (zapi)  at (10.2,0.8){Z.AccountAPI};
+\node[mod] (zhist) at (10.2,-0.8){Z.HistoryStore};
+\node[ext] (apns) at (13.9,2.4){APNs / FCM};
+\node[ext] (home) at (13.9,-2.4){Homeowner};
+\draw[flow] (xsens) -- (xble) node[fl,pos=0.5]{reading};
+\draw[flow] (xble) -- (ybc) node[fl,pos=0.6]{BLE notify};
+\draw[flow] (ybc) -- (yae) node[fl,pos=0.5]{events};
+\draw[flow] (yae) -- (yls) node[fl,pos=0.5]{store};
+\draw[flow] (yae.west) to[bend right=40] node[fl,pos=0.68]{local alert} (yui.west);
+\draw[flow] (yae) -- (zapi) node[fl,pos=0.5]{event};
+\draw[flow] (zapi) -- (zpush) node[fl,pos=0.5]{notify};
+\draw[flow] (zapi) -- (zhist) node[fl,pos=0.5]{persist};
+\draw[flow] (zpush) -- (apns) node[fl,pos=0.5]{push};
+\draw[flow] (apns) -- (home) node[fl,pos=0.5]{push alert};
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (yui) -- (home) node[fl,pos=0.5,below]{alert / config};
+\end{tikzpicture}}
 \caption{Device/app/cloud architecture carried forward from the ADS}\end{figure}
 Device: nRF52-class MCU with integrated BLE (C/Zephyr). App: Flutter (Dart) for
 iOS/Android parity. Cloud: a small serverless API + managed DB + APNs/FCM.

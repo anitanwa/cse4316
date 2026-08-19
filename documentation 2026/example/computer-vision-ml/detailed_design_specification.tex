@@ -5,8 +5,17 @@
 \usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
 \usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
 \usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \allsectionsfont{\color{accentcolor}\scshape\selectfont}
 \definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\tikzset{
+  mod/.style={draw, rounded corners, fill=white, minimum height=8mm, minimum width=27mm, font=\footnotesize, align=center, inner sep=2pt},
+  ext/.style={draw, dashed, rounded corners, fill=black!4, minimum height=8mm, minimum width=24mm, font=\footnotesize\itshape, align=center, inner sep=2pt},
+  band/.style={draw=accentcolor!45, rounded corners, inner sep=3.5mm},
+  llbl/.style={font=\small\bfseries, text=accentcolor, align=left},
+  flow/.style={-{Latex[length=2mm]}, thick, draw=accentcolor!80},
+  fl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+}
 \newcommand{\teamname}{Team Perceptron}
 \newcommand{\productname}{DigitDesk Handwritten Form Digitization Service}
 \newcommand{\coursename}{CSE 4317: Senior Design II}
@@ -51,7 +60,35 @@ Context, Composition, Information, Interface, Interaction \& State, Algorithm, a
 Resource viewpoints per IEEE 1016; irrelevant viewpoints omitted per subsystem.
 
 \section{System Overview}
-\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+\node[ext] (scan) at (0,0) {Scan workflow};
+\node[mod] (xin)  at (3.3,1.6) {X.Intake};
+\node[mod] (xpre) at (3.3,0)   {X.Preprocess};
+\node[mod] (xseg) at (3.3,-1.6){X.Segment};
+\node[mod] (yrec) at (7.2,1.6) {Y.Recognizer};
+\node[mod] (ycal) at (7.2,0)   {Y.Calibration};
+\node[mod] (yrou) at (7.2,-1.6){Y.Router};
+\node[mod] (zapi) at (11.6,3.1){Z.API};
+\node[mod] (zsto) at (11.6,1.6){Z.Store};
+\node[mod] (zrev) at (11.6,0)  {Z.ReviewUI};
+\node[mod] (zaud) at (11.6,-1.6){Z.Audit};
+\node[ext] (clerk) at (15.4,0) {Clerk};
+\node[ext] (recdb) at (15.4,3.1){Records DB};
+\draw[flow] (scan) -- (xin) node[fl,pos=0.55]{form image};
+\draw[flow] (xin) -- (xpre);
+\draw[flow] (xpre) -- (xseg);
+\draw[flow] (xseg) -- (yrec) node[fl,pos=0.5]{digit crops};
+\draw[flow] (yrec) -- (ycal) node[fl,pos=0.5]{scores};
+\draw[flow] (ycal) -- (yrou) node[fl,pos=0.5]{calib. conf};
+\draw[flow] (yrou) -- (zsto) node[fl,pos=0.45]{auto-accept};
+\draw[flow] (yrou) -- (zrev) node[fl,pos=0.5]{to review};
+\draw[flow] (yrou) -- (zaud) node[fl,pos=0.55]{log};
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (zrev) -- (clerk) node[fl,pos=0.5,below]{crop / decision};
+\draw[flow] (zrev) -- (zsto) node[fl,pos=0.5]{verified};
+\draw[flow] (zsto) -- (zapi) node[fl,pos=0.5]{records};
+\draw[flow] (zapi) -- (recdb) node[fl,pos=0.5]{export};
+\end{tikzpicture}}
 \caption{Pipeline carried forward from the ADS}\end{figure}
 Deployed as Docker containers on an on-prem Linux host with a message queue
 (RabbitMQ) between stages and PostgreSQL + object storage for persistence.

@@ -8,8 +8,17 @@
 \usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
 \usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
 \usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \allsectionsfont{\color{accentcolor}\scshape\selectfont}
 \definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\tikzset{
+  mod/.style={draw, rounded corners, fill=white, minimum height=8mm, minimum width=27mm, font=\footnotesize, align=center, inner sep=2pt},
+  ext/.style={draw, dashed, rounded corners, fill=black!4, minimum height=8mm, minimum width=24mm, font=\footnotesize\itshape, align=center, inner sep=2pt},
+  band/.style={draw=accentcolor!45, rounded corners, inner sep=3.5mm},
+  llbl/.style={font=\small\bfseries, text=accentcolor, align=left},
+  flow/.style={-{Latex[length=2mm]}, thick, draw=accentcolor!80},
+  fl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+}
 \newcommand{\teamname}{Team Trailblazer}
 \newcommand{\productname}{TerraScout Autonomous Ground Rover}
 \newcommand{\coursename}{CSE 4317: Senior Design II}
@@ -63,7 +72,33 @@ Algorithm, and Resource (hardware/OS/dependencies/languages). Viewpoints that do
 not apply are omitted.
 
 \section{System Overview}
-\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}
+\node[ext] (env) at (0,0) {PV field\\(environment)};
+\node[mod] (ximg) at (3.7,1.5) {X.Imaging};
+\node[mod] (xloc) at (3.7,0)   {X.Localization};
+\node[mod] (xprox) at (3.7,-1.5){X.Proximity};
+\node[mod] (ynav) at (7.6,1.5) {Y.Navigation};
+\node[mod] (yfd)  at (7.6,0)   {Y.FaultDetection};
+\node[mod] (ymis) at (7.6,-1.5){Y.Mission};
+\node[mod] (ygs)  at (7.6,3.4) {Y.GroundStation\\Server};
+\node[mod] (zdrv) at (12.0,0.8){Z.Drive};
+\node[mod] (zpow) at (12.0,-1.5){Z.Power};
+\node[ext] (gs)   at (12.4,3.4){Operator /\\Ground station};
+\node[ext] (dock) at (12.0,-3.1){Charging dock};
+\draw[flow] (env) -- (ximg) node[fl,pos=0.55]{imagery};
+\draw[flow] (env) -- (xprox);
+\draw[flow] (xloc) -- (ynav) node[fl,pos=0.5]{pose};
+\draw[flow] (ximg) -- (yfd) node[fl,pos=0.5]{frames};
+\draw[flow] (xprox) -- (ymis) node[fl,pos=0.5]{obstacle};
+\draw[flow] (yfd) -- (ymis) node[fl,pos=0.5]{detections};
+\draw[flow] (ynav) -- (zdrv) node[fl,pos=0.45]{cmd\_vel};
+\draw[flow] (zdrv) to[bend left=20] node[fl,pos=0.5]{odometry} (ynav);
+\draw[flow] (zpow) -- (ymis) node[fl,pos=0.5]{SoC};
+\draw[flow] (ymis.west) to[bend left=28] node[fl,pos=0.5]{report} (ygs.west);
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (ygs.east) -- (gs.west) node[fl,pos=0.5,below]{telemetry / cmd};
+\draw[flow] (dock) -- (zpow) node[fl,pos=0.5]{charge};
+\end{tikzpicture}}
 \caption{System architecture carried forward from the ADS}\end{figure}
 Compute runs on an NVIDIA Jetson-class module (Ubuntu, ROS~2); platform subsystems
 are STM32 microcontrollers on a CAN bus. The ground-station app runs on the

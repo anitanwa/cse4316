@@ -8,8 +8,17 @@
 \usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
 \usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
 \usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\usepackage{tikz}\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
 \allsectionsfont{\color{accentcolor}\scshape\selectfont}
 \definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\tikzset{
+  mod/.style={draw, rounded corners, fill=white, minimum height=8mm, minimum width=27mm, font=\footnotesize, align=center, inner sep=2pt},
+  ext/.style={draw, dashed, rounded corners, fill=black!4, minimum height=8mm, minimum width=24mm, font=\footnotesize\itshape, align=center, inner sep=2pt},
+  band/.style={draw=accentcolor!45, rounded corners, inner sep=3.5mm},
+  llbl/.style={font=\small\bfseries, text=accentcolor, align=left},
+  flow/.style={-{Latex[length=2mm]}, thick, draw=accentcolor!80},
+  fl/.style={font=\scriptsize, fill=white, inner sep=1pt},
+}
 \newcommand{\teamname}{Team Trailblazer}
 \newcommand{\productname}{TerraScout Autonomous Ground Rover}
 \newcommand{\coursename}{CSE 4316: Senior Design I}
@@ -78,7 +87,16 @@ out of scope for the prototype.
 The rover is a self-contained mobile system that interoperates with two external
 elements: an operator ground-station laptop (over Wi-Fi) and a passive charging
 dock. See Figure~\ref{fig:ctx}.
-\begin{figure}[h!]\centering\includegraphics[width=0.55\textwidth]{images/test_image}
+\begin{figure}[h!]\centering\resizebox{0.68\textwidth}{!}{%
+\begin{tikzpicture}
+\node[mod, minimum width=36mm, minimum height=13mm, fill=blue!8] (sys) {\textbf{TerraScout Rover}};
+\node[ext, above=13mm of sys] (op) {Operator /\\Ground station};
+\node[ext, left=16mm of sys] (pv) {PV field\\(panels)};
+\node[ext, below=13mm of sys] (dock) {Charging dock};
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (sys) -- (op) node[fl,pos=0.5]{commands / telemetry};
+\draw[flow] (pv) -- (sys) node[fl,pos=0.5]{imagery};
+\draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (sys) -- (dock) node[fl,pos=0.5]{dock / charge};
+\end{tikzpicture}}
 \caption{System context: rover, ground station, and charging dock}\label{fig:ctx}\end{figure}
 \subsubsection{Product Functions}
 Tele-operated and autonomous driving; waypoint navigation with obstacle avoidance;
