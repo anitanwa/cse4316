@@ -1,0 +1,188 @@
+%%% CSE 4316 SRS - WORKED EXAMPLE (Full-Stack Web App). Follows ISO/IEC/IEEE 29148:2018.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Fullstack}
+\newcommand{\productname}{CivicPulse Community Service-Request Dashboard}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{System Requirements Specification}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+\newcommand{\req}[7]{\subsubsection*{Description} #1 \subsubsection*{Rationale} #2
+  \subsubsection*{Source} #3 \subsubsection*{Priority} #4
+  \subsubsection*{Verification Method} #5 \subsubsection*{Constraints} #6
+  \subsubsection*{Applicable Standards} #7}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{10.01.2026}{JVN}{document creation}
+  \vhEntry{1.0}{10.20.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\setcounter{tocdepth}{2}\tableofcontents\newpage
+
+\section{Introduction}
+This SRS specifies \productname, a web application for community service requests.
+It follows ISO/IEC/IEEE 29148:2018 \cite{ISO29148}.
+\subsection{Purpose} Agreed requirements baseline between Team Fullstack and the city.
+\subsection{Scope}
+The system shall let residents submit and track geolocated service requests and let
+authorized staff triage, assign, update, and close them, with resident status
+notifications. Field-crew mobile apps and payment processing are out of scope.
+\subsection{Product Overview}
+\subsubsection{Product Perspective}
+A three-tier web application (browser frontend, API backend, database) integrating
+with the city SSO (OIDC), a geocoding/mapping API, and an SMTP relay.
+\subsubsection{Product Functions}
+Request submission with location/photo; resident status tracking; staff triage,
+assignment, and status update; duplicate detection; email notifications; reporting.
+\subsubsection{User Characteristics}
+Residents (unauthenticated or lightly registered), staff agents, and staff
+administrators (role-based). \subsubsection{Assumptions \& Dependencies}
+City SSO test realm; provided categories/routing; free-tier geocoding; SMTP relay.
+\subsection{Definitions, Acronyms, and Abbreviations}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{3cm} | p{10cm} |}\hline
+\textbf{Term} & \textbf{Definition} \\ \hline
+Request & A resident-reported service issue with type, location, and status \\ \hline
+Triage & Staff review that validates, categorizes, and prioritizes a request \\ \hline
+OIDC & OpenID Connect single sign-on \\ \hline
+RBAC & Role-Based Access Control \\ \hline
+\end{tabular}\end{center}\end{table}
+\newpage
+
+\section{Requirements Engineering Approach}
+Identifiers \texttt{[TYPE]-[NN]} (EI, FR, US, PE, SE, MS, QA) with the 29148
+attribute set. Requirements are singular and verifiable.
+\newpage
+
+\section{External Interface Requirements}
+\subsection{EI-01: City SSO (OIDC)}
+\req{Staff authentication shall be delegated to the city identity provider via
+OpenID Connect authorization-code flow.}
+{Staff must use existing city credentials; the app must not store staff passwords.}
+{Sponsor IT.}{Critical}{Test --- staff sign-in via the SSO realm.}
+{Depends on the SSO test realm.}{OpenID Connect Core 1.0, OAuth 2.0 (RFC 6749).}
+\subsection{EI-02: Geocoding/Mapping API}
+\req{The system shall geocode addresses and render request locations on a map via
+an external mapping API.}
+{Locations must be normalized and visualized for triage.}
+{Team.}{High}{Demonstration --- submit an address; see it mapped.}
+{Free-tier rate limits.}{None.}
+
+\section{Functional Requirements}
+\subsection{FR-01: Submit request}
+\req{A resident shall submit a request with category, description, location (map pin
+or address), and optional photo, and receive a tracking id.}
+{Intake is the entry point of the whole workflow.}
+{Sponsor.}{Critical}{Test --- submit and receive a tracking id.}
+{Photo size limited; location required.}{None.}
+\subsection{FR-02: Track request}
+\req{A resident shall view the current status and history of a request by its
+tracking id without authentication.}
+{Self-service status is the main resident benefit.}
+{Sponsor.}{Critical}{Demonstration --- look up a tracking id.}
+{No PII of other residents exposed.}{None.}
+\subsection{FR-03: Staff triage \& assignment}
+\req{An authenticated agent shall filter/sort the request queue, set priority, and
+assign a request to a crew or department.}
+{Staff need to organize and route the backlog.}
+{Sponsor.}{Critical}{Demonstration --- triage and assign a request.}
+{Restricted to the agent role (SE-01).}{None.}
+\subsection{FR-04: Status update \& notification}
+\req{When an agent changes a request status, the system shall record the change and
+email the resident (if contact provided).}
+{Closes the loop and reduces status-check calls.}
+{Sponsor.}{High}{Test --- change status; verify record + email.}
+{Requires SMTP relay.}{None.}
+\subsection{FR-05: Duplicate detection}
+\req{On submission the system shall flag likely duplicates (same category within a
+configurable radius/time) for staff review.}
+{Cuts duplicate handling effort.}
+{Sponsor.}{Moderate}{Test --- near-duplicate submissions are flagged.}
+{Radius/time configurable.}{None.}
+
+\section{Usability Requirements}
+\subsection{US-01: Accessible, responsive UI}
+\req{The resident portal and staff dashboard shall conform to WCAG 2.2 AA and be
+usable on mobile and desktop viewport widths (360--1920\,px).}
+{Public services must be accessible to all residents on any device.}
+{Sponsor; law.}{High}{Test --- automated + manual accessibility audit.}
+{Modern browsers.}{WCAG 2.2 AA.}
+
+\section{Performance Requirements}
+\subsection{PE-01: Responsiveness}
+\req{Interactive pages shall respond within 500\,ms (p95) and support at least 200
+concurrent users on the staging host.}
+{Sluggish public services are abandoned.}
+{Sponsor.}{High}{Test --- load test at target concurrency.}{Bounded by host.}{None.}
+
+\section{Security \& Privacy Requirements}
+\subsection{SE-01: RBAC \& transport security}
+\req{All staff functions shall be gated by role, and all traffic shall use TLS 1.3;
+plaintext HTTP shall redirect to HTTPS.}
+{Prevents unauthorized access and eavesdropping on resident data.}
+{Sponsor; security review.}{Critical}{Test --- role checks; TLS scan.}
+{On staging and production.}{OWASP ASVS; RFC 8446 (TLS 1.3).}
+\subsection{SE-02: Resident data minimization}
+\req{The system shall collect only the resident contact data needed for
+notifications and shall not expose personal data on public tracking pages.}
+{Privacy obligation under the city policy.}
+{Sponsor policy.}{High}{Inspection --- data-flow and page review.}
+{City privacy policy.}{None.}
+
+\section{Maintenance \& Support Requirements}
+\subsection{MS-01: Observability}
+\req{The system shall emit structured logs and health metrics sufficient to
+diagnose failures and monitor uptime without code changes.}
+{Operable by city IT after handover.}
+{Team.}{Moderate}{Inspection.}{Log retention sized for staging.}
+{ISO/IEC 25010:2023 (analysability) \cite{ISO25010}.}
+
+\section{Other Quality Attributes}
+\subsection{QA-01: Availability}
+\req{The service shall achieve $\geq$99.5\% monthly availability at the public
+endpoint.}
+{Residents rely on it being reachable.}
+{Sponsor.}{High}{Analysis --- uptime measurement.}{Single-region staging.}
+{ISO/IEC 25010:2023 (availability) \cite{ISO25010}.}
+
+\section{Verification \& Traceability}
+\begin{longtable}{ | p{1.4cm} | p{6.6cm} | p{1.4cm} | p{3cm} |}\hline
+\textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Method} & \textbf{Acceptance} \\ \hline\endhead
+FR-01 & Submit request & T & tracking id returned \\ \hline
+FR-04 & Status + notification & T & record + email sent \\ \hline
+US-01 & Accessibility & T & WCAG 2.2 AA pass \\ \hline
+PE-01 & Responsiveness & T & p95 $\leq$500\,ms @200 users \\ \hline
+SE-01 & RBAC + TLS & T & role checks; TLS1.3 \\ \hline
+\end{longtable}
+
+\section{Future Items}
+\subsection{FI-01: Native field-crew mobile app}
+\req{An offline-capable mobile app for field crews to update requests on-site.}
+{Valuable but beyond prototype scope.}
+{Sponsor.}{Future}{Test (if implemented).}{Requires mobile dev + offline sync.}{None.}
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

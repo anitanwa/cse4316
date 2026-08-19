@@ -1,0 +1,22 @@
+ISO/IEC/IEEE 42010:2022 \cite{ISO42010} requires that an architecture description identify the system's \textit{stakeholders} and the \textit{concerns} they hold about the architecture. Concerns are the interests --- such as functionality, performance, safety, security, cost, maintainability, or regulatory compliance --- that the architecture must address. Each concern is later framed by one or more architecture viewpoints (Section 3) and answered by the corresponding views (Sections 4--8).
+
+\subsection{Stakeholders}
+Identify each stakeholder or stakeholder role that has an interest in the architecture. Typical roles include the customer/sponsor, end users, the development team, maintainers, the course instructor, and any external system owners.
+
+\subsection{Architectural Concerns}
+List the concerns held by the stakeholders above. Focus on concerns that shape architectural decisions (not detailed requirements). The matrix below maps stakeholders to their concerns; use it to confirm every significant concern has an owner and is addressed by at least one view.
+
+\begin{table}[H]
+\caption{Stakeholder / concern matrix}
+\begin{center}
+    \begin{tabular}{ | p{4cm} | p{9cm} |}
+    \hline
+    \textbf{Stakeholder} & \textbf{Primary concerns} \\ \hline
+    Customer / sponsor & functionality delivered, cost, schedule, fitness for purpose \\ \hline
+    End users & usability, responsiveness, reliability \\ \hline
+    Development team & feasibility, modularity, testability \\ \hline
+    Maintainers & modifiability, observability, documentation \\ \hline
+    (add roles) & (add concerns) \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}

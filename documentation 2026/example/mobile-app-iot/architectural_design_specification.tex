@@ -1,0 +1,135 @@
+%%% CSE 4316 ADS - WORKED EXAMPLE (Mobile App + IoT). Follows ISO/IEC/IEEE 42010:2022 + IEEE 1016-2009.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Nimbus}
+\newcommand{\productname}{AquaGuard Smart Water-Leak Monitor}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{Architectural Design Specification}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{11.02.2026}{JVN}{document creation}
+  \vhEntry{1.0}{11.18.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\setcounter{tocdepth}{2}\tableofcontents\newpage
+
+\section{Introduction}
+Architecture of \productname\ as an ISO/IEC/IEEE 42010:2022 \cite{ISO42010}
+description using IEEE 1016-2009 \cite{IEEE1016} viewpoints. Refines the SRS. Scope:
+the sensor device, the mobile app, and the cloud backend.
+
+\section{Stakeholders \& Architectural Concerns}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{3.5cm} | p{9.5cm} |}\hline
+\textbf{Stakeholder} & \textbf{Primary concerns} \\ \hline
+Homeowner (user) & fast reliable alerts, easy setup, battery life \\ \hline
+Advisor & product viability, cross-platform parity, cost \\ \hline
+Development team & feasibility, BLE reliability, testability \\ \hline
+Support/maintainers & diagnosability, OTA update path \\ \hline
+\end{tabular}\end{center}\end{table}
+
+\section{Architecture Viewpoints}
+Context (Section 4), Composition/Data Flow (Section 5), Logical/Functional
+(Sections 6--8), Deployment (Section 8). Style: an edge device (BLE peripheral) +
+mobile central + cloud, with detection at the edge and alerting split between local
+(BLE) and remote (push) paths. Interfaces \texttt{\#NN}; subsystems
+\texttt{[Layer].[Name]}.
+
+\section{System Overview \& Context View}
+\begin{figure}[h!]\centering\includegraphics[width=0.55\textwidth]{images/layers}
+\caption{Three layers: sensor device, mobile app, cloud services}\end{figure}
+External actors: the homeowner (phone UI) and the platform push services (APNs/FCM).
+X senses and detects; Y connects, alerts locally, and relays; Z provides accounts,
+history, and remote push.
+
+\section{Subsystem Definitions \& Data Flow}
+\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\caption{Sensor $\rightarrow$ BLE $\rightarrow$ app $\rightarrow$ (local alert) / cloud $\rightarrow$ push}\end{figure}
+
+\section{X Layer Subsystems --- Sensor Device}
+\subsection{X.Sensing}
+\textbf{Responsibilities:} sample moisture/flow and run on-device threshold detection
+(FR-01) at low power (PE-01).
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#01 & Sensor sampling & moisture/flow & reading, leak flag \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{X.BLEPeripheral}
+\textbf{Responsibilities:} expose the GATT profile (EI-01) --- live reading, leak
+notify, threshold config, battery --- and manage bonded, encrypted links (SE-01).
+\textbf{Rationale:} on-device detection keeps alerting working even if the phone is
+briefly away and saves radio energy (AD-01).
+
+\section{Y Layer Subsystems --- Mobile Application}
+\subsection{Y.BLECentral}
+\textbf{Responsibilities:} scan, pair/bond, subscribe to notifications, read/write
+config (FR-02).
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#02 & BLE central link & GATT notifications & events, config writes \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{Y.AlertEngine}
+\textbf{Responsibilities:} raise local visual/audible/haptic alerts (FR-03) and
+forward events to the backend for remote push when disconnected (FR-04).
+\subsection{Y.UI \& Y.LocalStore}
+\textbf{Y.UI:} guided setup, live status, history (US-01, FR-05). \textbf{Y.LocalStore:}
+on-device event/config cache; source for offline history.
+
+\section{Z Layer Subsystems --- Cloud Services}
+\subsection{Z.AccountAPI}
+\textbf{Responsibilities:} device registration, user account, event ingestion over
+TLS (SE-01). \textbf{Deployment:} small managed backend + database.
+\subsection{Z.PushService}
+\textbf{Responsibilities:} deliver alerts via APNs/FCM (EI-02, FR-04).
+\subsection{Z.HistoryStore}
+\textbf{Responsibilities:} durable event history (FR-05) synced with the app.
+
+\section{Architecture Decisions \& Rationale}
+\subsection{AD-01: Edge detection on the device}
+\textbf{Context:} FR-01 latency + PE-01 battery + intermittent phone presence.
+\textbf{Decision:} detect on the device, not in the app/cloud. \textbf{Alternatives:}
+stream raw readings to the phone (higher radio energy, fails when away).
+\textbf{Consequences:} firmware complexity up, energy/latency improved. \textbf{Affects:} FR-01, PE-01, FR-04.
+\subsection{AD-02: Dual local/remote alert paths}
+\textbf{Context:} FR-03 (nearby) and FR-04 (away). \textbf{Decision:} local BLE
+alert plus cloud push fallback. \textbf{Alternatives:} push-only (slow when nearby),
+BLE-only (no reach when away). \textbf{Consequences:} two paths to test. \textbf{Affects:} FR-03, FR-04.
+
+\section{Requirements Traceability}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{2cm} | p{5.5cm} | p{5cm} |}\hline
+\textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Realizing subsystem(s)} \\ \hline
+FR-01 & Leak detection & X.Sensing \\ \hline
+FR-02 & Pairing/config & Y.BLECentral, X.BLEPeripheral \\ \hline
+FR-03 & Local alert & Y.AlertEngine \\ \hline
+FR-04 & Remote alert & Y.AlertEngine, Z.PushService \\ \hline
+FR-05 & History & Y.LocalStore, Z.HistoryStore \\ \hline
+SE-01 & Secure pairing/TLS & X.BLEPeripheral, Z.AccountAPI \\ \hline
+\end{tabular}\end{center}\end{table}
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

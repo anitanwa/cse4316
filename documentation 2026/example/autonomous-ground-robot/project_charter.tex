@@ -1,0 +1,192 @@
+%%% CSE 4316 Project Charter - WORKED EXAMPLE (Autonomous Ground Robot)
+%%% Structure follows ISO/IEC/IEEE 16326:2019. See ../../project charter latex/ for the blank template.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Trailblazer}
+\newcommand{\productname}{TerraScout Autonomous Ground Rover}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{Project Charter}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}
+{\centering \large \sc \textbf{\authors} \par}
+\newpage
+
+\begin{versionhistory}
+  \vhEntry{0.1}{09.02.2026}{GH}{document creation}
+  \vhEntry{0.2}{09.06.2026}{AT|GH}{complete draft}
+  \vhEntry{1.0}{09.15.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage
+\tableofcontents
+\newpage
+
+\section{Problem Statement}
+Utility-scale solar farms span hundreds of acres and thousands of photovoltaic (PV)
+panels. Undetected panel faults --- cracked cells, soiling, and thermal hotspots ---
+silently reduce energy yield and can become fire hazards. Today these sites are
+inspected manually on foot or with piloted drones, which is slow, labor-intensive,
+weather-limited, and inconsistent between inspectors. The result is that faults
+often go unaddressed for weeks. What is needed is a way to survey a PV field
+frequently, consistently, and without tying up skilled staff, so that faults are
+found and fixed while the lost energy is still small.
+
+\section{Methodology}
+Team Trailblazer will build \productname, a small four-wheeled autonomous ground
+rover that patrols the drivable lanes between PV rows. Following a set of GPS
+waypoints, the rover captures visual and thermal imagery of the panels, flags
+likely faults on-board, and produces a GPS-tagged inspection report at the end of
+each run. When it detects a low battery or an obstacle it cannot pass, it returns
+to its charging dock autonomously. In short: we are building a robot that drives
+itself around a solar farm and tells the operator which panels need attention.
+
+\section{Value Proposition}
+For the sponsor (a regional utility's O\&M group), the rover converts a costly,
+irregular manual task into a repeatable automated one, catching yield-robbing
+faults earlier and reducing truck-rolls to healthy panels. For the university and
+instructors, the project exercises the full systems-engineering life cycle across
+embedded hardware, autonomy software, and computer vision, producing a
+demonstrable prototype and a reusable mobile-robot platform for future teams.
+
+\section{Development Milestones}
+\begin{itemize}
+  \item Project Charter first draft - September 2026
+  \item System Requirements Specification - October 2026
+  \item Architectural Design Specification - November 2026
+  \item Demonstration of tele-operated drive \& sensor capture - December 2026
+  \item Detailed Design Specification - February 2027
+  \item Demonstration of waypoint navigation - March 2027
+  \item Demonstration of on-board fault detection - March 2027
+  \item CoE Innovation Day poster presentation - April 2027
+  \item Demonstration of autonomous dock/return - April 2027
+  \item Final Project Demonstration (full autonomous patrol) - May 2027
+\end{itemize}
+\newpage
+
+\section{Background}
+The sponsor operates several solar sites and currently contracts periodic drone
+thermography, typically once or twice a year. Between contracted flights the panels
+go uninspected. The sponsor approached the CSE Senior Design program seeking a
+lower-cost, higher-frequency ground-based alternative that their own field staff
+could operate without a licensed drone pilot. The team has no prior relationship
+with the sponsor; requirements were gathered through two scoping interviews.
+
+\section{Related Work}
+Aerial PV inspection with thermographic drones is well established
+\cite{Rubin2012}, but requires certified pilots and favorable weather, and does
+not run unattended. Commercial autonomous ground robots for solar exist but are
+priced for large operators and are closed platforms. Academic mobile-robot
+navigation using ROS, GPS-RTK, and visual fault detection is mature enough to
+adapt. \productname\ targets the gap: an affordable, operator-runnable ground
+platform for frequent inspection. (Add at least five fully-documented IEEE-format
+references in the final version.)
+
+\section{System Overview}
+At a high level the rover comprises a sensing front end (RGB + thermal cameras,
+GPS, IMU, ultrasonic bumpers), an on-board compute module running the autonomy and
+detection software, and a mobility base (brushless drive motors, battery, motor
+controllers). The operator interacts through a laptop ground-station web page over
+Wi-Fi to start runs and review reports; a charging dock provides autonomous
+recharge. See the Architectural Design Specification for the layered decomposition.
+
+\section{Project Management Approach}
+The team follows an iterative Scrum model \cite{Rubin2012, SchwaberSutherland2020}
+consistent with ISO/IEC/IEEE 16326:2019 \cite{ISO16326} within the life-cycle
+frameworks of ISO/IEC/IEEE 12207:2017 \cite{ISO12207} and 15288:2023
+\cite{ISO15288}. Two-week sprints run across CSE 4316 (requirements/design) and
+CSE 4317 (build/test). Work is estimated in task-hours and tracked on a shared
+board; progress is measured by sprint burndown and requirement/test coverage. A
+burndown trending above the ideal line for three consecutive days triggers scope
+re-negotiation with the Product Owner. Requirement changes are approved by the
+Product Owner in consultation with the sponsor; all work products are version-
+controlled in Git with tagged document releases.
+
+\section{Roles \& Responsibilities}
+Sponsor point of contact: utility O\&M lead. Product Owner: Grace Hopper.
+Scrum Master: Alan Turing (rotating each semester). Areas of responsibility ---
+Perception/CV: Ada Lovelace; Navigation/autonomy: John Von Neumann; Embedded
+platform/power: Charles Babbage; Ground station/reporting: Grace Hopper;
+Integration/test: Alan Turing.
+
+\section{Cost Proposal}
+Major expenses are the compute module, the thermal camera (the single largest line
+item), drive motors and controllers, battery, and chassis materials. Funding is
+the default CSE department stipend supplemented by a sponsor hardware contribution;
+the thermal camera may be loaned by the sponsor to stay within budget.
+
+\section{Facilities \& Equipment}
+Development uses the Senior Design lab (soldering, bench power, 3D printing). Field
+testing uses a university parking area mocked up with panel stand-ins, and, later,
+a supervised visit to a sponsor solar site. RTK-GPS base station and a fenced
+outdoor test area are required by the third sprint.
+
+\section{Assumptions}
+\begin{itemize}
+  \item A fenced outdoor testing area will be available by the 3rd sprint.
+  \item The sponsor will loan a compatible thermal camera by the 4th sprint.
+  \item Panel rows provide a drivable, reasonably level lane ($\leq$10\% grade).
+  \item RTK-GPS correction will be available at the test site.
+  \item The ground-station laptop and rover share a private Wi-Fi network.
+\end{itemize}
+
+\section{Constraints}
+\begin{itemize}
+  \item Final prototype demonstration must be completed by May 1st, 2027.
+  \item Total development cost must not exceed \$800 excluding loaned equipment.
+  \item The rover must weigh under 25\,kg for safe two-person handling.
+  \item Field testing only during daylight and dry weather.
+  \item All captured imagery of sponsor sites must be sponsor-approved before public release.
+\end{itemize}
+
+\section{Risks}
+\begin{table}[h]
+\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Risk description} & \textbf{Probability} & \textbf{Loss (days)} & \textbf{Exposure (days)} \\ \hline
+Thermal camera loan delayed & 0.40 & 20 & 8.0 \\ \hline
+Outdoor RTK test area unavailable & 0.30 & 14 & 4.2 \\ \hline
+Autonomy integration harder than estimated & 0.50 & 10 & 5.0 \\ \hline
+Motor controller lead time (overseas) & 0.20 & 18 & 3.6 \\ \hline
+Weather blocks field test windows & 0.35 & 8 & 2.8 \\ \hline
+\end{tabular}}
+\caption{Highest-exposure project risks}
+\end{table}
+
+\section{Documentation \& Reporting}
+Documentation deliverables (Charter, SRS, ADS, DDS, Test Plan) are maintained in
+Git and released at the ends of their planning sprints. Recurring artifacts ---
+product/sprint backlogs, sprint goals, burndown charts, individual sprint reports,
+retrospectives, and engineering notebooks --- are produced each sprint. Closeout
+materials include the rover prototype, a project poster, a public web page, a demo
+video, documented source code (MIT license), wiring schematics, chassis CAD (STEP),
+deployment scripts for the ground station, and an operator manual.
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

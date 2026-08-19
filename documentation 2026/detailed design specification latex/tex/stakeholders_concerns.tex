@@ -1,0 +1,15 @@
+IEEE Std 1016-2009 \cite{IEEE1016} frames a software design description around \textit{design stakeholders} and their \textit{design concerns}. Identify the parties who will use this document --- implementers, integrators, testers, and maintainers --- and the concerns each holds about the design (for example: how components are decomposed and depend on one another, how data is structured and persisted, how interfaces are contracted, how the system behaves over time, and what hardware/software resources are required). The design viewpoints declared in Section 3 are selected specifically to address these concerns.
+
+\begin{table}[H]
+\caption{Design stakeholders and concerns}
+\begin{center}
+    \begin{tabular}{ | p{4cm} | p{9cm} |}
+    \hline
+    \textbf{Design stakeholder} & \textbf{Design concerns} \\ \hline
+    Implementers & composition, interfaces, data structures, algorithms, dependencies \\ \hline
+    Integrators & interfaces, dependencies, resource/deployment requirements \\ \hline
+    Testers & interaction and state behavior, interfaces, verifiability \\ \hline
+    Maintainers & modularity, dependencies, rationale, resource footprint \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}

@@ -1,0 +1,18 @@
+This section declares the design viewpoints (IEEE Std 1016-2009 \cite{IEEE1016}) used to describe each subsystem in Sections 4--7. A design viewpoint fixes the conventions --- the concerns addressed and the notations used --- for one kind of design view. Not every subsystem requires every viewpoint; apply those that are relevant and omit the rest (for example, a pure-software module has no hardware resource view). The per-subsystem headings in the layer sections map onto these viewpoints.
+
+\begin{table}[H]
+\caption{Design viewpoints (IEEE 1016-2009) used in this document}
+\begin{center}
+    \begin{tabular}{ | p{3.2cm} | p{6.8cm} | p{3cm} |}
+    \hline
+    \textbf{Design viewpoint} & \textbf{Design concern it addresses} & \textbf{Where described} \\ \hline
+    Context & subsystem boundary and its collaborators & subsystem intro \\ \hline
+    Composition & how the subsystem is built from components/modules & subsystem intro \\ \hline
+    Information & data structures, records, schemas, packet formats & Data Structures \\ \hline
+    Interface & the services/APIs/signals offered and required & Interfaces \\ \hline
+    Interaction \& State & control flow, sequencing, and state dynamics & Data Processing \\ \hline
+    Algorithm & the procedures/algorithms performed & Data Processing \\ \hline
+    Resource & hardware, OS, dependencies, languages required & Hardware / OS / Dependencies / Languages \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}

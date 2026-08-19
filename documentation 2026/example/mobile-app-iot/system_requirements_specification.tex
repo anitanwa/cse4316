@@ -1,0 +1,199 @@
+%%% CSE 4316 SRS - WORKED EXAMPLE (Mobile App + IoT). Follows ISO/IEC/IEEE 29148:2018.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Nimbus}
+\newcommand{\productname}{AquaGuard Smart Water-Leak Monitor}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{System Requirements Specification}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+\newcommand{\req}[7]{\subsubsection*{Description} #1 \subsubsection*{Rationale} #2
+  \subsubsection*{Source} #3 \subsubsection*{Priority} #4
+  \subsubsection*{Verification Method} #5 \subsubsection*{Constraints} #6
+  \subsubsection*{Applicable Standards} #7}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{10.01.2026}{JVN}{document creation}
+  \vhEntry{1.0}{10.20.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\setcounter{tocdepth}{2}\tableofcontents\newpage
+
+\section{Introduction}
+This SRS specifies \productname, a BLE leak sensor with a companion mobile app.
+It follows ISO/IEC/IEEE 29148:2018 \cite{ISO29148}.
+\subsection{Purpose} Agreed requirements baseline for Team Nimbus and its advisor.
+\subsection{Scope}
+The system shall detect moisture/abnormal flow at the device, alert the paired phone
+locally over BLE, and deliver remote push notifications via a cloud backend when the
+phone is away; the app shall pair, configure thresholds, and show event history.
+Whole-home water shut-off actuation is out of scope.
+\subsection{Product Overview}
+\subsubsection{Product Perspective}
+Three cooperating elements: the sensor device (BLE peripheral), the mobile app (BLE
+central), and a lightweight cloud backend (accounts + push).
+\subsubsection{Product Functions}
+Leak/flow sensing; BLE pairing/config; local + remote alerting; event history;
+battery/status reporting; firmware update (OTA, stretch).
+\subsubsection{User Characteristics}
+A general homeowner using a personal smartphone; no technical expertise assumed.
+\subsubsection{Assumptions \& Dependencies}
+Recent iOS/Android phones; BLE range $\leq$5\,m; free-tier push service; controlled
+water test rig.
+\subsection{Definitions, Acronyms, and Abbreviations}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{3cm} | p{10cm} |}\hline
+\textbf{Term} & \textbf{Definition} \\ \hline
+BLE & Bluetooth Low Energy \\ \hline
+Peripheral/Central & BLE device roles (device advertises; phone connects) \\ \hline
+GATT & Generic Attribute Profile (BLE service/characteristic model) \\ \hline
+Leak event & A moisture/flow reading crossing the configured threshold \\ \hline
+\end{tabular}\end{center}\end{table}
+\newpage
+
+\section{Requirements Engineering Approach}
+Identifiers \texttt{[TYPE]-[NN]} (EI, FR, US, PE, SA, SE, MS, QA) with the 29148
+attribute set. Requirements are singular and verifiable.
+\newpage
+
+\section{External Interface Requirements}
+\subsection{EI-01: BLE GATT profile}
+\req{The device shall expose a BLE GATT service with characteristics for live
+reading, leak-event notification, threshold configuration, and battery level.}
+{The app and device must share a well-defined wireless contract.}
+{Team.}{Critical}{Test --- read/write/subscribe each characteristic from the app.}
+{Bluetooth SIG GATT constraints; MTU limits.}{Bluetooth Core Specification (BLE).}
+\subsection{EI-02: Push notification service}
+\req{The backend shall deliver leak alerts to the app via the platform push
+services (APNs/FCM).}
+{Alerts must reach the user when the app is backgrounded or the phone is away.}
+{Team.}{High}{Test --- trigger a leak; receive a push with app backgrounded.}
+{Depends on APNs/FCM availability.}{APNs/FCM specifications.}
+
+\section{Functional Requirements}
+\subsection{FR-01: Leak detection}
+\req{The device shall raise a leak event within 5\,s of moisture or abnormal flow
+crossing the configured threshold.}
+{Early detection is the product's core purpose.}
+{Advisor; team.}{Critical}{Test --- apply water on the rig; measure detection time.}
+{Threshold configurable via EI-01.}{None.}
+\subsection{FR-02: BLE pairing \& configuration}
+\req{A user shall pair the device with the app and set the leak threshold through the
+app UI.}
+{The device must be set up without special tools.}
+{Advisor.}{Critical}{Demonstration --- pair and set a threshold.}
+{One device per app instance in the prototype.}{None.}
+\subsection{FR-03: Local alert}
+\req{On a leak event while connected, the app shall alert the user within 3\,s with a
+distinct visual and audible/haptic notification.}
+{Immediate on-phone warning when the user is nearby.}
+{Advisor.}{Critical}{Test --- trigger event; measure alert latency.}
+{Requires an active BLE connection.}{None.}
+\subsection{FR-04: Remote alert}
+\req{When the phone is not connected to the device, a leak event shall be delivered
+as a remote push notification within 30\,s of reconnection/relay.}
+{Users are often away from the sensor; alerts must still reach them.}
+{Advisor.}{High}{Test --- background the app; trigger event; receive push.}
+{Depends on connectivity and EI-02.}{None.}
+\subsection{FR-05: Event history}
+\req{The app shall display a timestamped history of leak events and battery status
+for the paired device.}
+{Users need to review and trust past behavior.}
+{Advisor.}{Moderate}{Demonstration --- view history after several events.}
+{History retained locally and in the backend.}{None.}
+
+\section{Usability Requirements}
+\subsection{US-01: Guided setup}
+\req{A first-time user shall complete pairing and threshold setup in under 5 minutes
+following the in-app guide in $\geq$8 of 10 trials.}
+{Consumer devices must be self-installable.}
+{Advisor.}{High}{Test --- moderated setup trials.}{On both iOS and Android.}
+{WCAG 2.2 AA (mobile).}
+
+\section{Performance Requirements}
+\subsection{PE-01: Battery life}
+\req{The device shall operate at least 6 months on one battery set under nominal
+duty (advertising + occasional connection).}
+{Frequent battery changes would make the product impractical.}
+{Advisor.}{High}{Analysis --- power budget + accelerated measurement.}
+{Coin/AA battery capacity.}{None.}
+\subsection{PE-02: Detection reliability}
+\req{On the controlled test rig, leak detection shall achieve $\geq$95\% true-positive
+rate with $\leq$1 false alarm per 24\,h idle.}
+{Missed leaks defeat the purpose; nuisance alarms erode trust.}
+{Advisor; team.}{High}{Test --- repeated leak/idle trials on the rig.}
+{Limited to tested leak scenarios.}{None.}
+
+\section{Safety Requirements}
+\subsection{SA-01: Electrical \& water safety}
+\req{The device shall isolate its electronics from the moisture pad and operate at
+safe low voltage (battery); no mains connection.}
+{Placing electronics near water demands isolation to avoid hazard.}
+{Team; safety review.}{Critical}{Inspection --- enclosure/isolation review.}
+{Battery-only design (charter constraint).}{IEC 60950/62368 (guidance).}
+
+\section{Security \& Privacy Requirements}
+\subsection{SE-01: Secure pairing \& transport}
+\req{BLE pairing shall use a bonded, encrypted link, and app$\leftrightarrow$backend
+traffic shall use TLS 1.3.}
+{Prevents spoofed devices and interception of alerts/account data.}
+{Team; security review.}{Critical}{Test --- verify BLE bonding; TLS scan.}
+{BLE security modes supported by the module.}{Bluetooth LE Security; RFC 8446.}
+
+\section{Maintenance \& Support Requirements}
+\subsection{MS-01: Diagnostics}
+\req{The app shall surface device firmware version, battery level, and last-seen
+time to aid support.}
+{Enables remote troubleshooting.}
+{Team.}{Moderate}{Demonstration.}{Fields exposed via EI-01.}{None.}
+
+\section{Other Quality Attributes}
+\subsection{QA-01: Cross-platform parity}
+\req{Core functions (pair, configure, local alert, history) shall behave equivalently
+on iOS and Android.}
+{Users on either platform must get the same protection.}
+{Advisor.}{High}{Test --- run the core test suite on both platforms.}
+{Platform BLE-background differences documented.}
+{ISO/IEC 25010:2023 (portability) \cite{ISO25010}.}
+
+\section{Verification \& Traceability}
+\begin{longtable}{ | p{1.4cm} | p{6.6cm} | p{1.4cm} | p{3cm} |}\hline
+\textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Method} & \textbf{Acceptance} \\ \hline\endhead
+FR-01 & Leak detection $\leq$5\,s & T & measured $\leq$5\,s \\ \hline
+FR-03 & Local alert $\leq$3\,s & T & measured $\leq$3\,s \\ \hline
+FR-04 & Remote push & T & push received backgrounded \\ \hline
+PE-01 & 6-month battery & A & power budget meets target \\ \hline
+SE-01 & Secure pairing/TLS & T & bonded BLE; TLS1.3 \\ \hline
+\end{longtable}
+
+\section{Future Items}
+\subsection{FI-01: Automatic water shut-off}
+\req{An add-on valve actuator that shuts off water on a confirmed leak.}
+{High value but exceeds prototype scope and budget.}
+{Advisor.}{Future}{Test (if implemented).}{Requires plumbing actuator + safety work.}{None.}
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

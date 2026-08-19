@@ -1,0 +1,28 @@
+ISO/IEC/IEEE 29148:2018 \cite{ISO29148} requires that requirements be verifiable and bidirectionally traceable. This section collects the verification method for every requirement into a single matrix and records forward traceability to the design and test artifacts that will satisfy and confirm each requirement. Maintain this matrix as requirements evolve; it is the primary tool used during the Architectural Design, Detailed Design, and Test Plan phases to confirm coverage.
+
+\subsection{Requirements Verification Matrix}
+List every requirement identifier from Sections 3--11 with its declared verification method (Inspection, Analysis, Demonstration, Test) and the acceptance criterion that defines ``pass.''
+
+\begin{longtable}{ | p{1.6cm} | p{6.2cm} | p{1.6cm} | p{3.2cm} |}
+\hline
+\textbf{Req ID} & \textbf{Requirement (abbreviated)} & \textbf{Method} & \textbf{Acceptance criterion} \\ \hline
+\endhead
+FR-01 & abbreviated requirement text & T & measurable pass condition \\ \hline
+PE-01 & abbreviated requirement text & T & measurable pass condition \\ \hline
+SE-01 & abbreviated requirement text & I & measurable pass condition \\ \hline
+\end{longtable}
+
+\subsection{Traceability}
+Provide (or reference) a traceability matrix linking each requirement to (a) the architectural/detailed design element that realizes it and (b) the test case(s) that verify it. Early in the project the design and test columns may be marked ``TBD'' and completed as those documents are produced. Bidirectional traceability lets the team confirm that every requirement is designed and tested, and that no design element or test exists without a driving requirement.
+
+\begin{table}[H]
+\caption{Requirements traceability (excerpt)}
+\begin{center}
+    \begin{tabular}{ | p{1.6cm} | p{4.5cm} | p{4.5cm} |}
+    \hline
+    \textbf{Req ID} & \textbf{Design element (ADS/DDS)} & \textbf{Test case (Test Plan)} \\ \hline
+    FR-01 & subsystem / component reference & TC-xx \\ \hline
+    PE-01 & subsystem / component reference & TC-xx \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}

@@ -1,0 +1,153 @@
+%%% CSE 4316 Project Charter - WORKED EXAMPLE (Full-Stack Web App). Follows ISO/IEC/IEEE 16326:2019.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Fullstack}
+\newcommand{\productname}{CivicPulse Community Service-Request Dashboard}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{Project Charter}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{09.02.2026}{GH}{document creation}
+  \vhEntry{1.0}{09.15.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\tableofcontents\newpage
+
+\section{Problem Statement}
+Residents report non-emergency issues --- potholes, broken streetlights, illegal
+dumping --- through phone calls and email that land in scattered inboxes. Public
+works staff cannot see the full backlog, duplicates pile up, and residents get no
+status back, eroding trust. The city needs a single place for residents to report
+issues and for staff to see, prioritize, and resolve them, with visible status.
+
+\section{Methodology}
+Team Fullstack will build \productname, a web application with a public resident
+portal for submitting and tracking geolocated requests and a staff dashboard for
+triage, assignment, and status updates. In short: we are building a website where
+residents report neighborhood issues and city staff manage them to resolution on a
+shared dashboard.
+
+\section{Value Proposition}
+For the city, CivicPulse consolidates intake, removes duplicate handling, and gives
+residents self-service status, reducing call volume and improving accountability.
+For the university, the project exercises a complete secure multi-tier web
+application --- authentication, role-based access, geospatial data, and reporting.
+
+\section{Development Milestones}
+\begin{itemize}
+  \item Project Charter first draft - September 2026
+  \item System Requirements Specification - October 2026
+  \item Architectural Design Specification - November 2026
+  \item Demonstration of request submission \& map view - December 2026
+  \item Detailed Design Specification - February 2027
+  \item Demonstration of staff triage \& assignment - March 2027
+  \item Demonstration of status notifications - April 2027
+  \item CoE Innovation Day poster presentation - April 2027
+  \item Final Project Demonstration (end-to-end workflow) - May 2027
+\end{itemize}
+\newpage
+
+\section{Background}
+The department tracks requests in spreadsheets and email, with no resident-facing
+status. They asked the CSE program for a modern web front door integrated with their
+existing single sign-on. No prior relationship; requirements from two interviews and
+a review of their current intake spreadsheet.
+
+\section{Related Work}
+Commercial 311/CRM platforms (e.g. SeeClickFix-style products) exist \cite{Rubin2012}
+but are subscription-priced and not tailored to the city's SSO and categories.
+CivicPulse targets a lightweight, self-hostable alternative. (Add $\geq$5 IEEE
+references in the final version.)
+
+\section{System Overview}
+A responsive web frontend (resident portal + staff dashboard) talks to a backend API
+that enforces authentication and role-based access, persists requests with location
+in a database, and sends status notifications by email. A map component visualizes
+open requests. See the ADS for the three-tier design.
+
+\section{Project Management Approach}
+Iterative Scrum \cite{Rubin2012, SchwaberSutherland2020} per ISO/IEC/IEEE 16326:2019
+\cite{ISO16326} within ISO/IEC/IEEE 12207:2017 \cite{ISO12207}. Two-week sprints;
+estimation in task-hours; progress by burndown and by requirement/test coverage.
+Trunk-based Git with CI; tagged document releases.
+
+\section{Roles \& Responsibilities}
+Sponsor contact: public-works IT liaison. Product Owner: Grace Hopper. Scrum Master:
+Alan Turing. Frontend: Ada Lovelace; Backend/API: John Von Neumann; Data/geo:
+Charles Babbage; Auth/notifications: Grace Hopper; Integration/test: Alan Turing.
+
+\section{Cost Proposal}
+Mainly cloud hosting for a staging environment plus a mapping/geocoding API (free
+tier where possible); no custom hardware. Funded by the default CSE stipend; largest
+line item is hosting.
+
+\section{Facilities \& Equipment}
+Senior Design lab workstations; a cloud project for staging; access to a sponsor
+test SSO realm by the 3rd sprint.
+
+\section{Assumptions}
+\begin{itemize}
+  \item A sponsor SSO/OIDC test realm will be available by the 3rd sprint.
+  \item The city will provide the list of request categories and routing rules.
+  \item A free-tier geocoding/mapping API will meet demo volume.
+  \item Residents access the portal from modern mobile and desktop browsers.
+  \item Email delivery via a provided SMTP relay.
+\end{itemize}
+
+\section{Constraints}
+\begin{itemize}
+  \item Final demonstration must be completed by May 1st, 2027.
+  \item Total development cost must not exceed \$800.
+  \item The application must meet WCAG 2.2 AA accessibility.
+  \item Resident personal data handling must follow the city's privacy policy.
+  \item Staff functions must be restricted by role (no public access).
+\end{itemize}
+
+\section{Risks}
+\begin{table}[h]\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Risk description} & \textbf{Probability} & \textbf{Loss (days)} & \textbf{Exposure (days)} \\ \hline
+SSO/OIDC integration with city realm delayed & 0.40 & 12 & 4.8 \\ \hline
+Scope creep in staff dashboard features & 0.45 & 10 & 4.5 \\ \hline
+Geocoding API limits/costs on real volume & 0.30 & 8 & 2.4 \\ \hline
+Accessibility rework late in the project & 0.35 & 7 & 2.5 \\ \hline
+Email deliverability issues & 0.20 & 6 & 1.2 \\ \hline
+\end{tabular}}
+\caption{Highest-exposure project risks}
+\end{table}
+
+\section{Documentation \& Reporting}
+Documentation deliverables in Git, released at their planning sprints; recurring
+sprint artifacts and engineering notebooks each sprint. Closeout: deployed
+application, poster, public web page, demo video, documented source (MIT),
+infrastructure-as-code deployment scripts, and admin/user manuals.
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

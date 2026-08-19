@@ -1,0 +1,192 @@
+%%% CSE 4316 SRS - WORKED EXAMPLE (Computer Vision / ML). Follows ISO/IEC/IEEE 29148:2018.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Perceptron}
+\newcommand{\productname}{DigitDesk Handwritten Form Digitization Service}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{System Requirements Specification}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+\newcommand{\req}[7]{\subsubsection*{Description} #1 \subsubsection*{Rationale} #2
+  \subsubsection*{Source} #3 \subsubsection*{Priority} #4
+  \subsubsection*{Verification Method} #5 \subsubsection*{Constraints} #6
+  \subsubsection*{Applicable Standards} #7}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{10.01.2026}{JVN}{document creation}
+  \vhEntry{1.0}{10.20.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\setcounter{tocdepth}{2}\tableofcontents\newpage
+
+\section{Introduction}
+This SRS specifies \productname, an on-premises service that digitizes handwritten
+numeric fields on scanned forms. It follows ISO/IEC/IEEE 29148:2018 \cite{ISO29148}.
+\subsection{Purpose}
+Agreed requirements baseline between Team Perceptron and the records office.
+\subsection{Scope}
+The system shall ingest scanned forms, segment numeric fields, recognize handwritten
+digits with calibrated confidence, auto-accept high-confidence results, route
+low-confidence fields to human review, and export verified structured data.
+Free-text (non-numeric) recognition is out of scope.
+\subsection{Product Overview}
+\subsubsection{Product Perspective}
+A containerized service on sponsor-provided on-prem infrastructure, exposing a REST
+API and a small review web UI; input is scanned images from the office's existing
+scanner workflow. \subsubsection{Product Functions}
+Ingestion \& preprocessing; field segmentation; digit recognition with confidence;
+confidence-based routing; human review; verified export; audit logging.
+\subsubsection{User Characteristics}
+Data-entry clerks (review UI users) and an IT administrator (deploys/monitors).
+\subsubsection{Assumptions \& Dependencies}
+Scans $\geq$200\,dpi grayscale; consistent field layout per template; labeled
+validation set from the sponsor; on-prem GPU/CPU inference host.
+\subsection{Definitions, Acronyms, and Abbreviations}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{3cm} | p{10cm} |}\hline
+\textbf{Term} & \textbf{Definition} \\ \hline
+Field & A bounded region of a form holding one handwritten numeric value \\ \hline
+Confidence & Calibrated probability the recognized value is correct \\ \hline
+Review queue & Fields below the acceptance threshold, held for human check \\ \hline
+IDP & Intelligent Document Processing \\ \hline
+\end{tabular}\end{center}\end{table}
+\newpage
+
+\section{Requirements Engineering Approach}
+Identifiers \texttt{[TYPE]-[NN]} (EI, FR, US, PE, SE, MS, QA) with the 29148
+attribute set (Description, Rationale, Source, Priority, Verification Method,
+Constraints, Applicable Standards). Requirements are singular and verifiable.
+\newpage
+
+\section{External Interface Requirements}
+\subsection{EI-01: Ingestion API}
+\req{The system shall accept form images via an authenticated REST endpoint
+(\texttt{POST /forms}) as multipart PNG/TIFF and return a job identifier.}
+{The office's scan workflow must submit images programmatically.}
+{Sponsor IT.}{Critical}{Test --- submit images, verify job id and status.}
+{On-prem network only.}{IETF RFC 9110 (HTTP), RFC 8259 (JSON).}
+
+\section{Functional Requirements}
+\subsection{FR-01: Field segmentation}
+\req{For a known form template, the system shall locate each numeric field and
+produce a per-field digit-crop set.}
+{Recognition operates on isolated fields, not whole pages.}
+{Team.}{Critical}{Test --- IoU of detected vs.\ ground-truth field boxes $\geq$0.9.}
+{Depends on consistent template layout.}{None.}
+\subsection{FR-02: Digit recognition with confidence}
+\req{The system shall recognize the handwritten digit string in each field and
+attach a calibrated confidence to each field value.}
+{Confidence drives auto-accept vs.\ review routing.}
+{Sponsor; team.}{Critical}{Test --- accuracy and calibration on the validation set.}
+{Model runs on the on-prem host within latency budget (PE-01).}{None.}
+\subsection{FR-03: Confidence-based routing}
+\req{Fields with confidence $\geq$ the configured threshold shall be auto-accepted;
+all others shall be placed in the review queue.}
+{Keeps a human check exactly where the model is unsure.}
+{Sponsor.}{Critical}{Demonstration --- fields route per threshold.}
+{Threshold configurable by admin.}{None.}
+\subsection{FR-04: Human review}
+\req{A reviewer shall, through the web UI, see the field crop and proposed value,
+and confirm or correct it; the decision shall be recorded with the reviewer id.}
+{Auditable human oversight of uncertain fields.}
+{Sponsor.}{Critical}{Demonstration --- review and correct a queued field.}
+{Review UI runs in the office browser.}{None.}
+\subsection{FR-05: Verified export \& audit log}
+\req{The system shall export verified records (form id, field, value, source:
+auto/reviewed) and retain an immutable audit log of every field decision.}
+{Downstream systems consume clean data; disputes require an audit trail.}
+{Sponsor.}{High}{Test --- export matches decisions; log entries immutable.}
+{Export format agreed (CSV/JSON).}{None.}
+
+\section{Usability Requirements}
+\subsection{US-01: Efficient review}
+\req{A clerk shall review and clear a queued field in under 10 seconds median
+across 50 fields, using only keyboard confirm/correct.}
+{Review throughput determines the net labor saving.}
+{Sponsor.}{High}{Test --- timed review sessions.}{Readable crops in the UI.}
+{WCAG 2.2 AA.}
+
+\section{Performance Requirements}
+\subsection{PE-01: Throughput \& latency}
+\req{The system shall process at least 5 pages/second and return per-page results
+within 2\,s (95th percentile) on the on-prem host.}
+{Must keep up with the office scan volume.}
+{Sponsor.}{High}{Test --- load test at target volume.}{Bounded by host hardware.}{None.}
+\subsection{PE-02: Field accuracy}
+\req{Auto-accepted fields shall have $\leq$0.5\% error, and end-to-end field
+accuracy (after review) shall be $\geq$99.5\%.}
+{Auto-accept must be safer than manual keying; the whole point is fewer errors.}
+{Sponsor.}{Critical}{Analysis --- evaluate on the labeled validation set.}
+{Requires representative validation data.}{None.}
+
+\section{Security \& Privacy Requirements}
+\subsection{SE-01: On-prem data handling}
+\req{All form images and extracted data shall remain on sponsor-approved on-prem
+infrastructure; no data shall egress to external services.}
+{Form data may contain regulated PII.}
+{Sponsor policy.}{Critical}{Inspection --- data-flow and egress review.}
+{No cloud inference in prototype.}{None.}
+\subsection{SE-02: Authenticated access}
+\req{All API and review-UI access shall require authentication; every field
+decision shall be attributable to an identified user or the automated pipeline.}
+{Accountability and audit integrity.}
+{Sponsor; team.}{High}{Test --- unauthenticated access refused; decisions attributed.}
+{On-prem identity provider.}{NIST SP 800-63B (guidance).}
+
+\section{Maintenance \& Support Requirements}
+\subsection{MS-01: Model \& data versioning}
+\req{Each deployed model shall be identified by a version and the dataset hash it
+was trained on, recorded with every prediction it makes.}
+{Reproducibility and rollback when a model regresses.}
+{Team.}{Moderate}{Inspection.}{Version metadata stored with results.}
+{ISO/IEC 25010:2023 (analysability) \cite{ISO25010}.}
+
+\section{Other Quality Attributes}
+\subsection{QA-01: Replaceable model}
+\req{The recognition model shall be replaceable via configuration without code
+changes to preprocessing, routing, or the API.}
+{Lets the model improve as more real data is labeled.}
+{Team.}{Moderate}{Inspection --- interface review.}{Defined model interface.}
+{ISO/IEC 25010:2023 (modularity) \cite{ISO25010}.}
+
+\section{Verification \& Traceability}
+\begin{longtable}{ | p{1.4cm} | p{6.6cm} | p{1.4cm} | p{3cm} |}\hline
+\textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Method} & \textbf{Acceptance} \\ \hline\endhead
+FR-02 & Recognition + confidence & T & meets PE-02 \\ \hline
+FR-03 & Confidence routing & D & routes per threshold \\ \hline
+PE-01 & Throughput/latency & T & $\geq$5 pg/s, $\leq$2\,s p95 \\ \hline
+PE-02 & Field accuracy & A & auto err $\leq$0.5\%; e2e $\geq$99.5\% \\ \hline
+SE-01 & On-prem only & I & no egress observed \\ \hline
+\end{longtable}
+
+\section{Future Items}
+\subsection{FI-01: Multi-template auto-detection}
+\req{Automatic identification of the form template without pre-configuration.}
+{Broadens applicability but exceeds prototype scope.}
+{Sponsor.}{Future}{Test (if implemented).}{Needs many labeled templates.}{None.}
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

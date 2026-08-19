@@ -1,0 +1,32 @@
+Include a header paragraph specific to your product here. External interface requirements define the interactions between the system and everything outside its boundary: users, hardware, other software, and communications. Per ISO/IEC/IEEE 29148:2018, specify each interface's content and format precisely enough that an independent team could implement either side. Where helpful, summarize the data crossing an interface in a table (name, description, direction, units/format, range).
+
+\subsection{EI-01: [Interface Name]}
+\subsubsection{Description}
+The system shall \ldots\ (a single testable statement describing the interface, e.g. \textit{``The system shall expose a REST API over HTTPS accepting JSON request bodies encoded in UTF-8.''}). Identify whether the interface is a user interface, hardware interface, software interface, or communications interface, and reference the relevant data elements.
+
+\begin{table}[H]
+\caption{EI-01 data elements}
+\begin{center}
+    \begin{tabular}{ | p{2.5cm} | p{5cm} | p{2cm} | p{3cm} |}
+    \hline
+    \textbf{Element} & \textbf{Description} & \textbf{Direction} & \textbf{Format / Units} \\ \hline
+    element 1 & description & in & type, range \\ \hline
+    element 2 & description & out & type, range \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}
+\subsubsection{Rationale}
+Why this interface is required and the benefit it provides.
+\subsubsection{Source}
+Customer, sponsor, named team member, standard, etc.
+\subsubsection{Priority}
+Critical / High / Moderate / Low / Future
+\subsubsection{Verification Method}
+Inspection / Analysis / Demonstration / Test
+\subsubsection{Constraints}
+Any realistic constraints applicable to this interface.
+\subsubsection{Applicable Standards}
+e.g. IETF RFC 8259 (JSON), USB 2.0, IEEE 802.11, etc.
+
+\subsection{EI-02: [Interface Name]}
+Repeat the attribute block for each external interface.

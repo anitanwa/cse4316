@@ -1,0 +1,13 @@
+ISO/IEC/IEEE 42010:2022 \cite{ISO42010} calls for an architecture description to record the \textit{architecture decisions} and their \textit{rationale} --- the reasoning, alternatives considered, and trade-offs behind the architecture. Capturing decisions here makes the architecture reviewable and gives future maintainers the ``why'' behind the structure. Record each architecturally significant decision using the lightweight format below (an architecture decision record).
+
+\subsection{AD-01: [Decision Title]}
+\begin{itemize}
+  \item \textbf{Context:} The situation and forces (requirements, constraints, concerns) that made a decision necessary.
+  \item \textbf{Decision:} The choice that was made, stated plainly.
+  \item \textbf{Alternatives considered:} Other options evaluated and why they were not chosen.
+  \item \textbf{Consequences:} The resulting trade-offs --- positive and negative --- and any concerns (from Section 2) that remain only partially addressed.
+  \item \textbf{Affected concerns / requirements:} Stakeholder concerns and SRS requirement IDs influenced by this decision.
+\end{itemize}
+
+\subsection{AD-02: [Decision Title]}
+Repeat for each architecturally significant decision (for example: choice of layering, monolith vs. service decomposition, synchronous vs. message-based communication, on-device vs. cloud processing, primary datastore, safety-interlock strategy).

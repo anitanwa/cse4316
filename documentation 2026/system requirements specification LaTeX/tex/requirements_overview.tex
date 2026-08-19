@@ -1,0 +1,57 @@
+This section defines the conventions used to write and manage the requirements in this document. Remove the explanatory paragraphs from your final draft, but retain the tables and conventions your team adopts.
+
+\subsection{Requirement Identification \& Numbering}
+Every requirement in this document has a unique, persistent identifier so that it can be traced through design, implementation, and test. This template uses the scheme \texttt{[TYPE]-[NN]}, where \texttt{TYPE} denotes the requirement category and \texttt{NN} is a zero-padded sequence number, e.g. \texttt{FR-01} (functional), \texttt{PE-03} (performance), \texttt{SE-02} (security). Identifiers are never reused or renumbered once assigned; a retired requirement is marked \textit{deprecated} rather than deleted.
+
+\begin{table}[H]
+\caption{Requirement type prefixes}
+\begin{center}
+    \begin{tabular}{ | p{2cm} | p{11cm} |}
+    \hline
+    \textbf{Prefix} & \textbf{Requirement type} \\ \hline
+    EI & External interface \\ \hline
+    FR & Functional \\ \hline
+    US & Usability \\ \hline
+    PE & Performance \\ \hline
+    PK & Packaging \& deployment \\ \hline
+    SA & Safety \\ \hline
+    SE & Security \& privacy \\ \hline
+    MS & Maintenance \& support \\ \hline
+    QA & Other quality attribute \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Requirement Attributes}
+Each requirement is specified using the attribute set below, adapted from the requirement attributes recommended in ISO/IEC/IEEE 29148:2018 \cite{ISO29148}. Every requirement in Sections 3--11 provides each of these attributes.
+
+\begin{itemize}
+  \item \textbf{Description} --- A single, testable statement of the required capability or characteristic, written using ``shall.''
+  \item \textbf{Rationale} --- Why the requirement exists and the benefit it provides; this justifies the requirement and aids future change decisions.
+  \item \textbf{Source} --- The origin of the requirement (customer, sponsor, named team member, regulation, standard, CSE Senior Design specifications, etc.).
+  \item \textbf{Priority} --- The relative importance of the requirement (see below).
+  \item \textbf{Verification Method} --- How conformance will be demonstrated (see below).
+  \item \textbf{Constraints} --- Realistic constraints relevant to the requirement (economic, environmental, social, political, ethical, health \& safety, manufacturability, sustainability), as applicable.
+  \item \textbf{Applicable Standards} --- Any specific standards that govern the requirement.
+\end{itemize}
+
+\subsection{Priority Scheme}
+\begin{itemize}
+\item \textbf{Critical} --- must have, or the product is a failure
+\item \textbf{High} --- very important to customer acceptance and desirability
+\item \textbf{Moderate} --- should have for proper product functionality
+\item \textbf{Low} --- nice to have; will include if time/resources permit
+\item \textbf{Future} --- not feasible in this version; recorded for a future release (see Section~13)
+\end{itemize}
+
+\subsection{Verification Methods}
+Each requirement declares how it will be verified, using one of the four standard methods. The Verification \& Traceability section (Section~12) collects these into a requirements verification matrix.
+\begin{itemize}
+\item \textbf{Inspection (I)} --- verification by visual examination of the item or its documentation.
+\item \textbf{Analysis (A)} --- verification by technical evaluation, modeling, or calculation.
+\item \textbf{Demonstration (D)} --- verification by exercising the system and observing behavior, without detailed measurement.
+\item \textbf{Test (T)} --- verification by controlled execution against defined inputs with measured, recorded results.
+\end{itemize}
+
+\subsection{Characteristics of Well-Formed Requirements}
+Requirements in this document are written to satisfy the characteristics defined in ISO/IEC/IEEE 29148:2018: each requirement should be \textit{necessary, appropriate, unambiguous, complete, singular, feasible, verifiable, correct,} and \textit{conforming}, and the requirement set as a whole should be \textit{complete, consistent, feasible, comprehensible,} and \textit{able to be validated}. Avoid implementation detail unless it is a genuine constraint; specify \textit{what} is required, not \textit{how} it is built (design decisions belong in the Architectural and Detailed Design Specifications).

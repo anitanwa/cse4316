@@ -1,0 +1,177 @@
+%%% CSE 4316 ADS - WORKED EXAMPLE (Autonomous Ground Robot)
+%%% Structure follows ISO/IEC/IEEE 42010:2022 + IEEE 1016-2009.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{pbox}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Trailblazer}
+\newcommand{\productname}{TerraScout Autonomous Ground Rover}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{Architectural Design Specification}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}
+{\centering \large \sc \textbf{\authors} \par}
+\newpage
+
+\begin{versionhistory}
+  \vhEntry{0.1}{11.02.2026}{JVN}{document creation}
+  \vhEntry{1.0}{11.18.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage
+\setcounter{tocdepth}{2}\tableofcontents
+\newpage
+
+\section{Introduction}
+This ADS describes the architecture of \productname\ as an architecture description
+per ISO/IEC/IEEE 42010:2022 \cite{ISO42010}, using design viewpoints from IEEE Std
+1016-2009 \cite{IEEE1016}. It refines the requirements baselined in the SRS and the
+concept in the Project Charter. Scope: the rover, its ground-station link, and its
+charging dock.
+
+\section{Stakeholders \& Architectural Concerns}
+\begin{table}[H]\begin{center}
+\begin{tabular}{ | p{3.5cm} | p{9.5cm} |}\hline
+\textbf{Stakeholder} & \textbf{Primary concerns} \\ \hline
+Sponsor (O\&M) & inspection coverage, fault-detection quality, cost, safety \\ \hline
+Field technician & simple operation, reliability, safe behavior near people \\ \hline
+Development team & feasibility, modularity, testability, integration risk \\ \hline
+Maintainers & diagnosability, replaceable detection model, documentation \\ \hline
+Instructor/safety & compliance with lab and robot-safety policy \\ \hline
+\end{tabular}\end{center}\end{table}
+
+\section{Architecture Viewpoints}
+\begin{table}[H]\begin{center}
+\begin{tabular}{ | p{3cm} | p{6.5cm} | p{3cm} |}\hline
+\textbf{Viewpoint} & \textbf{Frames} & \textbf{Realized in} \\ \hline
+Context & boundary, external actors & Section 4 \\ \hline
+Composition/Data Flow & layer/subsystem decomposition, data & Section 5 \\ \hline
+Logical/Functional & subsystem responsibilities \& interfaces & Sections 6--8 \\ \hline
+Deployment & software-to-hardware mapping & Section 8 \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{Architectural Style \& Conventions}
+The system uses a three-layer robotics stack: \textbf{X --- Perception \& Sensing},
+\textbf{Y --- Autonomy \& Compute}, and \textbf{Z --- Mobility \& Power}. Subsystems
+communicate over a ROS~2 message bus on the compute module; hardware interfaces use
+USB, CSI, and CAN. Interface identifiers use \texttt{\#NN}. Layers are named by
+function; subsystems are named \texttt{[Layer].[Name]}.
+
+\section{System Overview \& Context View}
+\begin{figure}[h!]\centering\includegraphics[width=0.55\textwidth]{images/layers}
+\caption{Three-layer architecture of the rover}\end{figure}
+External actors: the operator (via the ground-station web page and WebSocket link),
+the physical PV field (sensed environment), and the charging dock (docking + power).
+The X layer converts the physical world into data; the Y layer turns data into
+decisions and reports; the Z layer turns decisions into motion and manages power.
+
+\section{Subsystem Definitions \& Data Flow}
+\begin{figure}[h!]\centering\includegraphics[width=0.9\textwidth]{images/data_flow}
+\caption{Data flow: sensors $\rightarrow$ perception $\rightarrow$ autonomy $\rightarrow$ drive/report}\end{figure}
+Sensor streams (X) feed localization and perception; the autonomy layer (Y) fuses
+pose, plans paths, detects faults, and drives the mission state machine, emitting
+velocity commands to the platform (Z) and status/reports to the ground station.
+
+\section{X Layer Subsystems --- Perception \& Sensing}
+\subsection{X.Imaging}
+\textbf{Responsibilities:} capture synchronized RGB and thermal frames and tag them
+with time and pose. \textbf{Assumptions:} thermal camera provides a USB/CSI stream.
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#01 & Camera capture bus & trigger, pose stamp & RGB frame, thermal frame \\ \hline
+\end{tabular}\end{center}\end{table}
+\textbf{Design rationale:} on-camera hardware sync avoids frame-to-pose skew (AD-02).
+\subsection{X.Localization}
+\textbf{Responsibilities:} produce a fused pose from RTK-GNSS and IMU at $\geq$20\,Hz.
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#02 & Pose estimate & GNSS fix, IMU & fused pose \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{X.Proximity}
+\textbf{Responsibilities:} detect near obstacles (ultrasonic/bumper) and raise a
+stop signal. Feeds FR-05 safe-stop.
+
+\section{Y Layer Subsystems --- Autonomy \& Compute}
+\subsection{Y.Navigation}
+\textbf{Responsibilities:} plan and follow paths through the waypoint list within
+the FR-01 tolerance, avoiding obstacles; emit velocity commands.
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#03 & Motion command & pose, waypoints, proximity & velocity cmd \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{Y.FaultDetection}
+\textbf{Responsibilities:} classify panel regions in captured frames as nominal or
+suspected fault (FR-03) and record locations. Model is replaceable (QA-01).
+\subsection{Y.Mission}
+\textbf{Responsibilities:} run the mission state machine (idle$\rightarrow$patrol
+$\rightarrow$capture$\rightarrow$return$\rightarrow$dock), enforce FR-05 triggers,
+and assemble the FR-04 report.
+\subsection{Y.GroundStationServer}
+\textbf{Responsibilities:} terminate the TLS WebSocket (EI-01, SE-01), stream
+telemetry, accept commands, and serve reports to the operator page.
+
+\section{Z Layer Subsystems --- Mobility \& Power}
+\subsection{Z.Drive}
+\textbf{Responsibilities:} execute velocity commands via brushless motor controllers
+over CAN; enforce E-stop (SA-01) in hardware.
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
+ID & Description & Inputs & Outputs \\ \hline
+\#04 & Drive bus (CAN) & velocity cmd & wheel torque, odometry \\ \hline
+\end{tabular}\end{center}\end{table}
+\subsection{Z.Power}
+\textbf{Responsibilities:} manage the battery, report state-of-charge (drives FR-05
+low-battery), and control dock charging (EI-02).
+\subsection{Z.Comms}
+\textbf{Responsibilities:} provide the Wi-Fi link between the compute module and the
+ground station. \textbf{Deployment:} compute module (Y, X software) mounts on the
+chassis; Z subsystems are embedded microcontrollers on the CAN bus.
+
+\section{Architecture Decisions \& Rationale}
+\subsection{AD-01: ROS 2 message bus}
+\textbf{Context:} multiple concurrent sensing/decision processes. \textbf{Decision:}
+adopt ROS~2. \textbf{Alternatives:} custom IPC (more work), ROS~1 (EOL).
+\textbf{Consequences:} mature tooling and modularity (supports QA-01) at the cost of
+a runtime dependency. \textbf{Affects:} FR-01, FR-03, QA-01.
+\subsection{AD-02: On-board (edge) fault detection}
+\textbf{Context:} FR-03 plus SE-02 (imagery stays on the private network).
+\textbf{Decision:} run detection on-board rather than streaming imagery off-site.
+\textbf{Alternatives:} cloud inference (violates SE-02, needs egress).
+\textbf{Consequences:} bounded by compute budget; model kept replaceable. \textbf{Affects:} FR-03, SE-02, PE-03.
+
+\section{Requirements Traceability}
+\begin{table}[H]\begin{center}\begin{tabular}{ | p{2cm} | p{5.5cm} | p{5cm} |}\hline
+\textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Realizing subsystem(s)} \\ \hline
+FR-01 & Waypoint patrol & Y.Navigation, X.Localization \\ \hline
+FR-02 & Imagery capture & X.Imaging \\ \hline
+FR-03 & Fault detection & Y.FaultDetection \\ \hline
+FR-04 & Inspection report & Y.Mission, Y.GroundStationServer \\ \hline
+FR-05 & Safe-stop \& return & Y.Mission, X.Proximity, Z.Power \\ \hline
+SE-01 & Encrypted link & Y.GroundStationServer \\ \hline
+SA-01 & Emergency stop & Z.Drive \\ \hline
+\end{tabular}\end{center}\end{table}
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

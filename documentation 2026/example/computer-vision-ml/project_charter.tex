@@ -1,0 +1,158 @@
+%%% CSE 4316 Project Charter - WORKED EXAMPLE (Computer Vision / ML)
+%%% Structure follows ISO/IEC/IEEE 16326:2019.
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[T1]{fontenc}\usepackage[bitstream-charter]{mathdesign}\usepackage[latin1]{inputenc}
+\usepackage{amsmath}\usepackage{xcolor}\usepackage{cite}\usepackage{hyphenat}
+\usepackage{graphicx}\usepackage{float}\usepackage{subfigure}\usepackage{sectsty}
+\usepackage[compact]{titlesec}\usepackage[tablegrid]{vhistory}\usepackage{longtable}
+\allsectionsfont{\color{accentcolor}\scshape\selectfont}
+\definecolor{accentcolor}{rgb}{0.0,0.0,0.5}
+\newcommand{\teamname}{Team Perceptron}
+\newcommand{\productname}{DigitDesk Handwritten Form Digitization Service}
+\newcommand{\coursename}{CSE 4316: Senior Design I}
+\newcommand{\semester}{Fall 2026}
+\newcommand{\docname}{Project Charter}
+\newcommand{\department}{Department of Computer Science \& Engineering}
+\newcommand{\university}{The University of Texas at Arlington}
+\newcommand{\authors}{Alan Turing \\ Grace Hopper \\ John Von Neumann \\ Ada Lovelace \\ Charles Babbage}
+\usepackage{fancyhdr}\pagestyle{fancy}\usepackage{lastpage}
+\lhead{}\chead{}\rhead{}\lfoot{\footnotesize \teamname \ - \semester}\cfoot{}
+\rfoot{\footnotesize page \thepage\ of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.0pt}\renewcommand{\footrulewidth}{0.4pt}
+\usepackage[runin]{abstract}\abslabeldelim{\quad}\setlength{\abstitleskip}{-10pt}
+\renewcommand{\abstractname}{}\renewcommand{\abstracttextfont}{\color{accentcolor} \small \slshape}
+
+\begin{document}
+{\centering \huge \color{accentcolor} \sc \textbf{\department \\ \university} \par}
+\vspace{1 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\docname \\ \coursename \\ \semester} \par}
+\vspace{0.5 in}
+\begin{figure}[h!]\centering\includegraphics[width=0.60\textwidth]{images/test_image}\end{figure}
+\vspace{0.5 in}
+{\centering \huge \color{accentcolor} \sc \textbf{\teamname \\ \productname} \par}
+\vspace{0.5 in}{\centering \large \sc \textbf{\authors} \par}
+\newpage
+\begin{versionhistory}
+  \vhEntry{0.1}{09.02.2026}{GH}{document creation}
+  \vhEntry{1.0}{09.15.2026}{AT|GH|CB}{official release}
+\end{versionhistory}
+\newpage\tableofcontents\newpage
+
+\section{Problem Statement}
+A county records office receives thousands of paper forms each month containing
+handwritten numeric fields (meter readings, account numbers, dated amounts). Staff
+key these into a database by hand --- slow, costly, and error-prone, with mistakes
+surfacing only later as billing disputes. The office needs a faster, more consistent
+way to turn handwritten numeric fields on scanned forms into verified digital data.
+
+\section{Methodology}
+Team Perceptron will build \productname, a service that ingests scanned form images,
+locates the numeric fields, recognizes the handwritten digits with a machine-learning
+model, and returns structured, confidence-scored data. Low-confidence fields are
+routed to a human-in-the-loop review screen rather than accepted blindly. In short:
+we are building software that reads handwritten numbers off scanned forms and hands
+back clean data plus a short review queue.
+
+\section{Value Proposition}
+For the sponsor, DigitDesk cuts manual keying effort and transcription errors while
+keeping a human check where the model is unsure, lowering downstream dispute costs.
+For the university, the project exercises a complete, responsible ML pipeline ---
+data handling, training, evaluation, calibration, and human oversight --- with a
+public benchmark (MNIST) available for early development.
+
+\section{Development Milestones}
+\begin{itemize}
+  \item Project Charter first draft - September 2026
+  \item System Requirements Specification - October 2026
+  \item Architectural Design Specification - November 2026
+  \item Demonstration of digit classifier on MNIST - December 2026
+  \item Detailed Design Specification - February 2027
+  \item Demonstration of field segmentation on real forms - March 2027
+  \item Demonstration of review workflow \& confidence routing - April 2027
+  \item CoE Innovation Day poster presentation - April 2027
+  \item Final Project Demonstration (end-to-end digitization) - May 2027
+\end{itemize}
+\newpage
+
+\section{Background}
+The office currently double-keys critical fields to catch errors, doubling labor.
+They approached the CSE program for an ML-assisted alternative that keeps a human in
+the loop for auditability. No prior relationship; requirements gathered via two
+interviews and a sample of redacted forms.
+
+\section{Related Work}
+Handwritten-digit recognition is a classic ML benchmark (MNIST) \cite{Rubin2012},
+and commercial OCR/IDP products exist but are priced per-page and often cloud-only,
+which conflicts with the office's data-handling rules. DigitDesk targets an
+on-premises, auditable, confidence-routed pipeline. (Add $\geq$5 IEEE-format
+references in the final version.)
+
+\section{System Overview}
+Scanned images enter a preprocessing stage (deskew, denoise, field segmentation);
+segmented digit crops go to the recognition model, which emits digits with
+confidence; results above a threshold are stored, and the rest enter a review queue
+served through a small web UI. See the ADS for the layered design.
+
+\section{Project Management Approach}
+Iterative Scrum \cite{Rubin2012, SchwaberSutherland2020} per ISO/IEC/IEEE 16326:2019
+\cite{ISO16326} within ISO/IEC/IEEE 12207:2017 \cite{ISO12207}. Two-week sprints;
+estimation in task-hours; progress by burndown and by a tracked model-quality metric
+(field-level accuracy). Data and model versions are tracked alongside code in Git.
+
+\section{Roles \& Responsibilities}
+Sponsor contact: records-office supervisor. Product Owner: Grace Hopper. Scrum
+Master: Alan Turing. Data/preprocessing: John Von Neumann; Model/eval: Ada Lovelace;
+API/storage: Charles Babbage; Review UI: Grace Hopper; Integration/test: Alan Turing.
+
+\section{Cost Proposal}
+Primarily cloud/GPU compute for training and an on-prem inference server; no custom
+hardware. Funded by the default CSE department stipend. Largest line item is GPU
+training hours.
+
+\section{Facilities \& Equipment}
+Senior Design lab workstations, department GPU allocation for training, and an
+on-prem test server matching the sponsor environment. A sample of redacted real
+forms is required by the 3rd sprint.
+
+\section{Assumptions}
+\begin{itemize}
+  \item Redacted real-form samples will be available by the 3rd sprint.
+  \item Scans are provided at $\geq$200\,dpi grayscale.
+  \item Field locations are consistent across a given form template.
+  \item Public MNIST data may be used for early model development.
+  \item The sponsor can label a validation set of real fields.
+\end{itemize}
+
+\section{Constraints}
+\begin{itemize}
+  \item Final demonstration must be completed by May 1st, 2027.
+  \item Total development cost must not exceed \$800.
+  \item All form data must remain on sponsor-approved (on-prem) infrastructure.
+  \item Personally identifiable fields must be redacted before any team access.
+  \item Any accepted-without-review field must meet the agreed accuracy target.
+\end{itemize}
+
+\section{Risks}
+\begin{table}[h]\resizebox{\textwidth}{!}{
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Risk description} & \textbf{Probability} & \textbf{Loss (days)} & \textbf{Exposure (days)} \\ \hline
+Real handwriting harder than MNIST (domain gap) & 0.55 & 15 & 8.3 \\ \hline
+Field-segmentation fails on skewed/noisy scans & 0.40 & 12 & 4.8 \\ \hline
+Insufficient labeled real data & 0.45 & 10 & 4.5 \\ \hline
+On-prem GPU/server access delayed & 0.25 & 12 & 3.0 \\ \hline
+Confidence calibration poor (bad routing) & 0.30 & 8 & 2.4 \\ \hline
+\end{tabular}}
+\caption{Highest-exposure project risks}
+\end{table}
+
+\section{Documentation \& Reporting}
+Documentation deliverables tracked in Git and released at their planning sprints;
+recurring sprint artifacts and engineering notebooks maintained each sprint.
+Closeout: the deployed service, model card, poster, web page, demo video, documented
+source (MIT), deployment scripts, and an operator/reviewer manual.
+
+\bibliographystyle{reference/IEEEtran_custom}
+\bibliography{reference/refs}{}
+\end{document}

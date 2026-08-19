@@ -1,0 +1,20 @@
+An \textit{architecture viewpoint} (ISO/IEC/IEEE 42010:2022 \cite{ISO42010}) establishes the conventions for constructing and interpreting one kind of \textit{view}: which stakeholders and concerns it frames, and the model kinds (notations) it uses. This section declares the viewpoints used in the remainder of the document. Each subsequent section is a view that conforms to one of these viewpoints. The viewpoints below combine the 42010 framework with the design viewpoints of IEEE Std 1016-2009 \cite{IEEE1016}; adapt the set to your project.
+
+\begin{table}[H]
+\caption{Architecture viewpoints used in this document}
+\begin{center}
+    \begin{tabular}{ | p{3cm} | p{5cm} | p{2.5cm} | p{2.5cm} |}
+    \hline
+    \textbf{Viewpoint} & \textbf{Frames (concerns)} & \textbf{Model kind} & \textbf{Realized in} \\ \hline
+    Context & system boundary, external actors/systems & context diagram & Section 4 \\ \hline
+    Composition / Data Flow & decomposition into layers/subsystems and the data exchanged & block \& data-flow diagram & Section 5 \\ \hline
+    Logical / Functional & responsibilities and interfaces of each subsystem & block diagram, interface tables & Sections 6--8 \\ \hline
+    Deployment & mapping of software to hardware/nodes & deployment diagram & Section 7 or 8 (as needed) \\ \hline
+    \end{tabular}
+\end{center}
+\end{table}
+
+\subsection{Architectural Style \& Conventions}
+Describe the overall architectural strategy for the system: the top-level decomposition into \textit{layers}. An architectural layer is the top-level logical view, or abstraction, of the design. Layers are composed of related elements of similar capability, are highly independent of other layers, and have clearly defined interfaces and interactions. Each layer is identified individually and is unique in its function and purpose within the system.
+
+State the naming conventions your team will use for layers, subsystems, modules, interfaces, and data flows, and the interface identifier scheme (e.g. \texttt{\#01}, \texttt{\#02}) referenced by the subsystem interface tables in Sections 6--8. Consistent conventions here make the views, the Detailed Design Specification, and the traceability matrix easy to cross-reference.
