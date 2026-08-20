@@ -49,7 +49,7 @@
 
 \section{Introduction}
 Implementation-level design of \productname\ as an IEEE 1016-2009 \cite{IEEE1016}
-Software Design Description, building on the SRS and ADS (tiers X/Y/Z).
+Software Design Description, building on the SRS and ADS (tiers Presentation, Application, Data).
 
 \section{Design Stakeholders \& Concerns}
 Implementers, integrators, testers, city IT (maintainers); concerns of composition,
@@ -64,15 +64,15 @@ Resource per IEEE 1016; omitted where not applicable.
 \begin{tikzpicture}
 \node[ext] (res) at (0,1.5) {Resident};
 \node[ext] (staff) at (0,-1.5) {Staff};
-\node[mod] (xrp) at (3.3,1.5) {X.ResidentPortal};
-\node[mod] (xsd) at (3.3,-1.5) {X.StaffDashboard};
-\node[mod] (yapi) at (6.9,0) {Y.APIGateway};
+\node[mod] (xrp) at (3.3,1.5) {Presentation.ResidentPortal};
+\node[mod] (xsd) at (3.3,-1.5) {Presentation.StaffDashboard};
+\node[mod] (yapi) at (6.9,0) {Application.APIGateway};
 \node[ext] (sso) at (6.9,2.5) {City SSO (OIDC)};
-\node[mod] (yreq) at (10.6,0) {Y.RequestService};
-\node[mod] (ynot) at (10.6,-2.6) {Y.Notification Service};
-\node[mod] (zds) at (14.6,1.5) {Z.Datastore};
-\node[mod] (zos) at (14.6,0.2) {Z.ObjectStore};
-\node[mod] (zint) at (14.6,-1.1) {Z.Integrations};
+\node[mod] (yreq) at (10.6,0) {Application.RequestService};
+\node[mod] (ynot) at (10.6,-2.6) {Application.Notification Service};
+\node[mod] (zds) at (14.6,1.5) {Data.Datastore};
+\node[mod] (zos) at (14.6,0.2) {Data.ObjectStore};
+\node[mod] (zint) at (14.6,-1.1) {Data.Integrations};
 \node[ext] (smtp) at (14.6,-2.6) {SMTP relay};
 \node[ext] (mapapi) at (18.4,-1.1) {Mapping API};
 \draw[flow] (res) -- (xrp) node[fl,pos=0.5]{submit / track};
@@ -92,24 +92,24 @@ Resource per IEEE 1016; omitted where not applicable.
 Frontend: React/TypeScript SPAs served by a CDN/reverse proxy. Backend: containerized
 Node/TypeScript (NestJS) API. Data: managed PostgreSQL + PostGIS and object storage.
 
-\section{X Layer Subsystems --- Presentation}
+\section{Presentation Layer}
 \subsection{Layer Resources}
 \textbf{Deps:} React, TypeScript, a map library; \textbf{Language:} TypeScript.
-\subsection{X.ResidentPortal \& X.StaffDashboard}
+\subsection{Presentation.ResidentPortal \& Presentation.StaffDashboard}
 \textbf{Composition:} SPA route modules (submit, track, dashboard, request detail).
 \textbf{Interface (\#01):} calls the REST API; renders map via EI-02. \textbf{State:}
 client form/query state; auth token held in memory for staff. \textbf{Interaction:}
 optimistic status updates with server confirmation. \textbf{Rationale:} SPA split
 enables responsive/accessible UI (US-01) over the stateless API (AD-01).
 
-\section{Y Layer Subsystems --- Application}
+\section{Application Layer}
 \subsection{Layer Resources}
 \textbf{Deps:} NestJS, an OIDC client, an ORM, an SMTP client; \textbf{Language:}
 TypeScript.
-\subsection{Y.APIGateway}
+\subsection{Application.APIGateway}
 \textbf{Interface (\#02):} REST; validates OIDC access tokens (EI-01) and enforces
 RBAC middleware (SE-01). \textbf{Algorithm:} per-route role guard; deny by default.
-\subsection{Y.RequestService}
+\subsection{Application.RequestService}
 \textbf{Information:} \texttt{Request\{id, category, description, geom(Point),
 photo\_ref, status, priority, assignee, history[]\}}. \textbf{Interface:} CRUD +
 triage/assign endpoints. \textbf{State:} status machine
@@ -117,28 +117,28 @@ triage/assign endpoints. \textbf{State:} status machine
 $\rightarrow$RESOLVED$\rightarrow$CLOSED}. \textbf{Algorithm (FR-05):} on create,
 \texttt{ST\_DWithin} PostGIS query for same-category requests within radius/time;
 flag matches. \textbf{Rationale:} PostGIS does the spatial work natively.
-\subsection{Y.NotificationService}
+\subsection{Application.NotificationService}
 On status change, render a template and send via SMTP (FR-04); failures retried and
 logged (MS-01).
 
-\section{Z Layer Subsystems --- Data}
+\section{Data Layer}
 \subsection{Layer Resources}
 \textbf{Tech:} PostgreSQL + PostGIS; object storage; \textbf{Language:} SQL/migrations.
-\subsection{Z.Datastore}
+\subsection{Data.Datastore}
 \textbf{Information:} normalized tables \texttt{requests, users, assignments,
 status\_history, audit}; spatial index on \texttt{geom}. \textbf{Interface:} ORM +
-migrations. \subsection{Z.Integrations}
+migrations. \subsection{Data.Integrations}
 Adapters for geocoding (EI-02) and SMTP behind interfaces so providers can be
 swapped without touching services.
 
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1.6cm} | p{5cm} | p{3.4cm} | p{1.6cm} |}\hline
 \textbf{Req} & \textbf{Requirement (abbrev.)} & \textbf{Component} & \textbf{Iface} \\ \hline
-FR-01/02 & Submit/track & X.ResidentPortal, Y.RequestService & \#01 \\ \hline
-FR-03 & Triage/assign & Y.RequestService & \#02 \\ \hline
-FR-04 & Status/notify & Y.NotificationService & --- \\ \hline
-FR-05 & Duplicates & Y.RequestService, Z.Datastore & --- \\ \hline
-SE-01 & RBAC+TLS & Y.APIGateway & \#02 \\ \hline
+FR-01/02 & Submit/track & Presentation.ResidentPortal, Application.RequestService & \#01 \\ \hline
+FR-03 & Triage/assign & Application.RequestService & \#02 \\ \hline
+FR-04 & Status/notify & Application.NotificationService & --- \\ \hline
+FR-05 & Duplicates & Application.RequestService, Data.Datastore & --- \\ \hline
+SE-01 & RBAC+TLS & Application.APIGateway & \#02 \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \section{Appendix A}

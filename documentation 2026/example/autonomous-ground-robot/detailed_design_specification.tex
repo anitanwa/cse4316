@@ -57,7 +57,7 @@
 \section{Introduction}
 This DDS gives the implementation-level design of \productname\ as a Software Design
 Description per IEEE Std 1016-2009 \cite{IEEE1016}. It builds on the SRS
-(requirements) and ADS (architecture, three layers X/Y/Z), adding hardware,
+(requirements) and ADS (architecture, three layers: Perception, Autonomy, Mobility), adding hardware,
 software, data, and algorithm detail. Representative subsystems are detailed below.
 
 \section{Design Stakeholders \& Concerns}
@@ -75,15 +75,15 @@ not apply are omitted.
 \begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
 \node[ext] (env) at (0,0) {PV field\\(environment)};
-\node[mod] (ximg) at (3.7,1.5) {X.Imaging};
-\node[mod] (xloc) at (3.7,0)   {X.Localization};
-\node[mod] (xprox) at (3.7,-1.5){X.Proximity};
-\node[mod] (ynav) at (7.6,1.5) {Y.Navigation};
-\node[mod] (yfd)  at (7.6,0)   {Y.FaultDetection};
-\node[mod] (ymis) at (7.6,-1.5){Y.Mission};
-\node[mod] (ygs)  at (7.6,3.4) {Y.GroundStation\\Server};
-\node[mod] (zdrv) at (12.0,0.8){Z.Drive};
-\node[mod] (zpow) at (12.0,-1.5){Z.Power};
+\node[mod] (ximg) at (3.7,1.5) {Perception.Imaging};
+\node[mod] (xloc) at (3.7,0)   {Perception.Localization};
+\node[mod] (xprox) at (3.7,-1.5){Perception.Proximity};
+\node[mod] (ynav) at (7.6,1.5) {Autonomy.Navigation};
+\node[mod] (yfd)  at (7.6,0)   {Autonomy.FaultDetection};
+\node[mod] (ymis) at (7.6,-1.5){Autonomy.Mission};
+\node[mod] (ygs)  at (7.6,3.4) {Autonomy.GroundStation\\Server};
+\node[mod] (zdrv) at (12.0,0.8){Mobility.Drive};
+\node[mod] (zpow) at (12.0,-1.5){Mobility.Power};
 \node[ext] (gs)   at (12.4,3.4){Operator /\\Ground station};
 \node[ext] (dock) at (12.0,-3.1){Charging dock};
 \draw[flow] (env) -- (ximg) node[fl,pos=0.55]{imagery};
@@ -104,12 +104,12 @@ Compute runs on an NVIDIA Jetson-class module (Ubuntu, ROS~2); platform subsyste
 are STM32 microcontrollers on a CAN bus. The ground-station app runs on the
 operator laptop.
 
-\section{X Layer Subsystems --- Perception \& Sensing}
+\section{Perception \& Sensing Layer}
 \subsection{Layer Resources}
 \textbf{Hardware:} RGB CSI camera, USB thermal camera, RTK-GNSS receiver, IMU.
 \textbf{OS:} Ubuntu 22.04 on the compute module. \textbf{Dependencies:} ROS~2,
 OpenCV, GNSS driver.
-\subsection{X.Imaging}
+\subsection{Perception.Imaging}
 \textbf{Context/Composition:} a ROS~2 node wrapping both cameras and a hardware
 trigger. \textbf{Information:} \texttt{Frame\{stamp, pose, rgb[H][W][3],
 thermal[h][w]\}}. \textbf{Interface (\#01):} subscribes \texttt{/trigger},
@@ -118,18 +118,18 @@ grab both cameras, attach nearest-in-time pose, publish. \textbf{Resource:} C++ 
 the driver; $\sim$8\,W. \textbf{Rationale:} hardware trigger removes RGB/thermal
 skew (AD-02); C++ meets frame-rate.
 
-\section{Y Layer Subsystems --- Autonomy \& Compute}
+\section{Autonomy \& Compute Layer}
 \subsection{Layer Resources}
 \textbf{OS/Deps:} Ubuntu, ROS~2, Nav2 stack, PyTorch (inference), FastAPI (ground
 station). \textbf{Languages:} C++ (navigation), Python (detection, server).
-\subsection{Y.Navigation}
+\subsection{Autonomy.Navigation}
 \textbf{Composition:} Nav2-based planner + controller nodes.
 \textbf{Interface (\#03):} in \texttt{/pose}, \texttt{/waypoints},
 \texttt{/proximity}; out \texttt{/cmd\_vel}. \textbf{Algorithm:} pure-pursuit path
 following with a costmap for obstacle avoidance; cross-track error held $\leq$0.5\,m
 (FR-01). \textbf{State:} \texttt{PLAN$\rightarrow$FOLLOW$\rightarrow$AVOID$\rightarrow$ARRIVED}.
 \textbf{Rationale:} Nav2 reuse over a hand-written planner (AD-01).
-\subsection{Y.FaultDetection}
+\subsection{Autonomy.FaultDetection}
 \textbf{Composition:} a Python node loading a replaceable model artifact
 (QA-01). \textbf{Information:} input \texttt{Frame}; output
 \texttt{Detection\{class, confidence, pose, image\_ref\}}. \textbf{Interface:}
@@ -138,36 +138,36 @@ lightweight CNN (MobileNet-class backbone) fine-tuned on the sponsor set; per-re
 softmax over \{nominal, hotspot, soiling, crack\}; thresholded to meet PE-03.
 \textbf{Resource:} GPU inference on the Jetson. \textbf{Rationale:} edge inference
 per AD-02; model file swap keeps navigation untouched.
-\subsection{Y.Mission \& Y.GroundStationServer}
-\textbf{Y.Mission} runs the state machine (idle/patrol/capture/return/dock),
+\subsection{Autonomy.Mission \& Autonomy.GroundStationServer}
+\textbf{Autonomy.Mission} runs the state machine (idle/patrol/capture/return/dock),
 enforces FR-05 triggers (obstacle, SoC$\leq$20\%, link-loss$>$10\,s), and builds the
-CSV+image report (FR-04). \textbf{Y.GroundStationServer} is a FastAPI service
+CSV+image report (FR-04). \textbf{Autonomy.GroundStationServer} is a FastAPI service
 terminating the TLS~1.3 WebSocket (SE-01, EI-01), streaming telemetry at 2\,Hz and
 serving reports.
 
-\section{Z Layer Subsystems --- Mobility \& Power}
+\section{Mobility \& Power Layer}
 \subsection{Layer Resources}
 \textbf{Hardware:} 4$\times$brushless motors + CAN motor controllers, 24\,V LiFePO4
 battery + BMS, STM32 microcontrollers. \textbf{Languages:} C (firmware).
-\subsection{Z.Drive}
+\subsection{Mobility.Drive}
 \textbf{Interface (\#04):} consumes \texttt{/cmd\_vel} bridged to CAN torque
 commands; returns wheel odometry. \textbf{State:} a hardware E-stop line
 de-energizes motor power independent of firmware (SA-01). \textbf{Algorithm:}
 per-wheel PID velocity control. \textbf{Rationale:} hardware E-stop path is not
 software-defeatable.
-\subsection{Z.Power}
+\subsection{Mobility.Power}
 Reports state-of-charge from the BMS over CAN (drives FR-05); controls dock
 charging contactor (EI-02).
 
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1.6cm} | p{5cm} | p{3.4cm} | p{1.6cm} |}\hline
 \textbf{Req} & \textbf{Requirement (abbrev.)} & \textbf{Component} & \textbf{Iface} \\ \hline
-FR-01 & Waypoint patrol & Y.Navigation & \#03 \\ \hline
-FR-02 & Imagery capture & X.Imaging & \#01 \\ \hline
-FR-03 & Fault detection & Y.FaultDetection & --- \\ \hline
-FR-05 & Safe-stop/return & Y.Mission, Z.Power & \#04 \\ \hline
-SA-01 & Emergency stop & Z.Drive (HW E-stop) & \#04 \\ \hline
-SE-01 & Encrypted link & Y.GroundStationServer & \#01(GS) \\ \hline
+FR-01 & Waypoint patrol & Autonomy.Navigation & \#03 \\ \hline
+FR-02 & Imagery capture & Perception.Imaging & \#01 \\ \hline
+FR-03 & Fault detection & Autonomy.FaultDetection & --- \\ \hline
+FR-05 & Safe-stop/return & Autonomy.Mission, Mobility.Power & \#04 \\ \hline
+SA-01 & Emergency stop & Mobility.Drive (HW E-stop) & \#04 \\ \hline
+SE-01 & Encrypted link & Autonomy.GroundStationServer & \#01(GS) \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \section{Appendix A}

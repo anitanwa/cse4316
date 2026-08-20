@@ -70,46 +70,46 @@ Interfaces use \texttt{\#NN}; subsystems named \texttt{[Layer].[Name]}.
 \section{System Overview \& Context View}
 \begin{figure}[h!]\centering\resizebox{0.95\textwidth}{!}{%
 \begin{tikzpicture}[node distance=5mm]
-\node[mod] (xin) {X.Intake};
-\node[mod, right=of xin] (xpre) {X.Preprocess};
-\node[mod, right=of xpre] (xseg) {X.Segment};
-\node[mod, below=15mm of xin.west, anchor=west] (yrec) {Y.Recognizer};
-\node[mod, right=of yrec] (ycal) {Y.Calibration};
-\node[mod, right=of ycal] (yrou) {Y.Router};
-\node[mod, below=15mm of yrec.west, anchor=west] (zapi) {Z.API};
-\node[mod, right=of zapi] (zsto) {Z.Store};
-\node[mod, right=of zsto] (zrev) {Z.ReviewUI};
-\node[mod, right=of zrev] (zaud) {Z.Audit};
+\node[mod] (xin) {Ingestion.Intake};
+\node[mod, right=of xin] (xpre) {Ingestion.Preprocess};
+\node[mod, right=of xpre] (xseg) {Ingestion.Segment};
+\node[mod, below=15mm of xin.west, anchor=west] (yrec) {Recognition.Recognizer};
+\node[mod, right=of yrec] (ycal) {Recognition.Calibration};
+\node[mod, right=of ycal] (yrou) {Recognition.Router};
+\node[mod, below=15mm of yrec.west, anchor=west] (zapi) {Service.API};
+\node[mod, right=of zapi] (zsto) {Service.Store};
+\node[mod, right=of zsto] (zrev) {Service.ReviewUI};
+\node[mod, right=of zrev] (zaud) {Service.Audit};
 \begin{scope}[on background layer]
 \node[band, fill=blue!5, fit=(xin)(xseg)] (bx) {};
 \node[band, fill=blue!9, fit=(yrec)(yrou)] (by) {};
 \node[band, fill=blue!5, fit=(zapi)(zaud)] (bz) {};
 \end{scope}
-\node[llbl, left=3mm of bx] {X\\Ingestion \&\\Preprocessing};
-\node[llbl, left=3mm of by] {Y\\Recognition\\\& Analytics};
-\node[llbl, left=3mm of bz] {Z\\Service, Storage\\\& Review};
+\node[llbl, left=3mm of bx] {Ingestion \&\\Preprocessing};
+\node[llbl, left=3mm of by] {Recognition\\\& Analytics};
+\node[llbl, left=3mm of bz] {Service, Storage\\\& Review};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (bx.south) -- (by.north) node[fl,midway]{interfaces};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (by.south) -- (bz.north) node[fl,midway]{interfaces};
 \end{tikzpicture}}
 \caption{Three-layer pipeline: ingestion, recognition, service}\end{figure}
 External actors: the scan workflow (submits images to the API), the clerk (review
-UI), and the downstream records database (consumes verified export). X ingests and
-prepares images; Y recognizes and routes; Z serves, stores, reviews, and audits.
+UI), and the downstream records database (consumes verified export). Ingestion ingests and
+prepares images; Recognition recognizes and routes; Service serves, stores, reviews, and audits.
 
 \section{Subsystem Definitions \& Data Flow}
 \begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
 \node[ext] (scan) at (0,0) {Scan workflow};
-\node[mod] (xin)  at (3.3,1.6) {X.Intake};
-\node[mod] (xpre) at (3.3,0)   {X.Preprocess};
-\node[mod] (xseg) at (3.3,-1.6){X.Segment};
-\node[mod] (yrec) at (7.2,1.6) {Y.Recognizer};
-\node[mod] (ycal) at (7.2,0)   {Y.Calibration};
-\node[mod] (yrou) at (7.2,-1.6){Y.Router};
-\node[mod] (zapi) at (11.6,3.1){Z.API};
-\node[mod] (zsto) at (11.6,1.6){Z.Store};
-\node[mod] (zrev) at (11.6,0)  {Z.ReviewUI};
-\node[mod] (zaud) at (11.6,-1.6){Z.Audit};
+\node[mod] (xin)  at (3.3,1.6) {Ingestion.Intake};
+\node[mod] (xpre) at (3.3,0)   {Ingestion.Preprocess};
+\node[mod] (xseg) at (3.3,-1.6){Ingestion.Segment};
+\node[mod] (yrec) at (7.2,1.6) {Recognition.Recognizer};
+\node[mod] (ycal) at (7.2,0)   {Recognition.Calibration};
+\node[mod] (yrou) at (7.2,-1.6){Recognition.Router};
+\node[mod] (zapi) at (11.6,3.1){Service.API};
+\node[mod] (zsto) at (11.6,1.6){Service.Store};
+\node[mod] (zrev) at (11.6,0)  {Service.ReviewUI};
+\node[mod] (zaud) at (11.6,-1.6){Service.Audit};
 \node[ext] (clerk) at (15.4,0) {Clerk};
 \node[ext] (recdb) at (15.4,3.1){Records DB};
 \draw[flow] (scan) -- (xin) node[fl,pos=0.55]{form image};
@@ -128,45 +128,45 @@ prepares images; Y recognizes and routes; Z serves, stores, reviews, and audits.
 \end{tikzpicture}}
 \caption{Image $\rightarrow$ preprocess $\rightarrow$ segment $\rightarrow$ recognize $\rightarrow$ route $\rightarrow$ store/review}\end{figure}
 
-\section{X Layer Subsystems --- Ingestion \& Preprocessing}
-\subsection{X.Intake}
+\section{Ingestion \& Preprocessing Layer}
+\subsection{Ingestion.Intake}
 \textbf{Responsibilities:} accept uploads (EI-01), assign a job id, enqueue work.
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#01 & Ingestion API & form image & job id, queued image \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{X.Preprocess}
+\subsection{Ingestion.Preprocess}
 \textbf{Responsibilities:} deskew, denoise, binarize to a normalized page.
-\subsection{X.Segment}
+\subsection{Ingestion.Segment}
 \textbf{Responsibilities:} locate numeric fields on the known template and emit
 per-field digit crops (FR-01). \textbf{Rationale:} template-anchored segmentation is
 robust and simple for a fixed form (AD-01).
 
-\section{Y Layer Subsystems --- Recognition \& Analytics}
-\subsection{Y.Recognizer}
+\section{Recognition \& Analytics Layer}
+\subsection{Recognition.Recognizer}
 \textbf{Responsibilities:} classify digit crops and output values with raw scores
 (FR-02). Model is a replaceable artifact (QA-01).
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#02 & Recognition & digit crops & values, raw scores \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{Y.Calibration}
+\subsection{Recognition.Calibration}
 \textbf{Responsibilities:} convert raw scores to calibrated confidences (temperature
 scaling), so routing thresholds are meaningful (supports PE-02, FR-03).
-\subsection{Y.Router}
+\subsection{Recognition.Router}
 \textbf{Responsibilities:} apply the acceptance threshold (FR-03) --- auto-accept or
 enqueue for review.
 
-\section{Z Layer Subsystems --- Service, Storage \& Review}
-\subsection{Z.API}
+\section{Service, Storage \& Review Layer}
+\subsection{Service.API}
 \textbf{Responsibilities:} REST surface, authentication (SE-02), job status, export
 (FR-05). \textbf{Deployment:} containers orchestrated on the on-prem host.
-\subsection{Z.Store}
+\subsection{Service.Store}
 \textbf{Responsibilities:} persist images, results, and versions (MS-01); on-prem
 only (SE-01).
-\subsection{Z.ReviewUI}
+\subsection{Service.ReviewUI}
 \textbf{Responsibilities:} present queued fields for confirm/correct (FR-04).
-\subsection{Z.Audit}
+\subsection{Service.Audit}
 \textbf{Responsibilities:} append-only log of every field decision (FR-05, SE-02).
 
 \section{Architecture Decisions \& Rationale}
@@ -183,12 +183,12 @@ add a calibration stage. \textbf{Alternatives:} raw softmax (poorly calibrated).
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{2cm} | p{5.5cm} | p{5cm} |}\hline
 \textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Realizing subsystem(s)} \\ \hline
-FR-01 & Field segmentation & X.Segment \\ \hline
-FR-02 & Recognition + confidence & Y.Recognizer, Y.Calibration \\ \hline
-FR-03 & Confidence routing & Y.Router \\ \hline
-FR-04 & Human review & Z.ReviewUI \\ \hline
-FR-05 & Export \& audit & Z.API, Z.Audit \\ \hline
-SE-01 & On-prem data & Z.Store \\ \hline
+FR-01 & Field segmentation & Ingestion.Segment \\ \hline
+FR-02 & Recognition + confidence & Recognition.Recognizer, Recognition.Calibration \\ \hline
+FR-03 & Confidence routing & Recognition.Router \\ \hline
+FR-04 & Human review & Service.ReviewUI \\ \hline
+FR-05 & Export \& audit & Service.API, Service.Audit \\ \hline
+SE-01 & On-prem data & Service.Store \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \bibliographystyle{reference/IEEEtran_custom}

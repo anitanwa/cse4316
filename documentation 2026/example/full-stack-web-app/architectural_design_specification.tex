@@ -72,28 +72,28 @@ subsystems \texttt{[Layer].[Name]}.
 \section{System Overview \& Context View}
 \begin{figure}[h!]\centering\resizebox{0.95\textwidth}{!}{%
 \begin{tikzpicture}[node distance=5mm]
-\node[mod] (xrp) {X.ResidentPortal};
-\node[mod, right=of xrp] (xsd) {X.StaffDashboard};
-\node[mod, below=15mm of xrp.west, anchor=west] (yapi) {Y.APIGateway};
-\node[mod, right=of yapi] (yreq) {Y.RequestService};
-\node[mod, right=of yreq] (ynot) {Y.Notification\\Service};
-\node[mod, below=15mm of yapi.west, anchor=west] (zds) {Z.Datastore};
-\node[mod, right=of zds] (zos) {Z.ObjectStore};
-\node[mod, right=of zos] (zint) {Z.Integrations};
+\node[mod] (xrp) {Presentation.ResidentPortal};
+\node[mod, right=of xrp] (xsd) {Presentation.StaffDashboard};
+\node[mod, below=15mm of xrp.west, anchor=west] (yapi) {Application.APIGateway};
+\node[mod, right=of yapi] (yreq) {Application.RequestService};
+\node[mod, right=of yreq] (ynot) {Application.Notification\\Service};
+\node[mod, below=15mm of yapi.west, anchor=west] (zds) {Data.Datastore};
+\node[mod, right=of zds] (zos) {Data.ObjectStore};
+\node[mod, right=of zos] (zint) {Data.Integrations};
 \begin{scope}[on background layer]
 \node[band, fill=blue!5, fit=(xrp)(xsd)] (bx) {};
 \node[band, fill=blue!9, fit=(yapi)(ynot)] (by) {};
 \node[band, fill=blue!5, fit=(zds)(zint)] (bz) {};
 \end{scope}
-\node[llbl, left=3mm of bx] {X\\Presentation};
-\node[llbl, left=3mm of by] {Y\\Application};
-\node[llbl, left=3mm of bz] {Z\\Data};
+\node[llbl, left=3mm of bx] {Presentation};
+\node[llbl, left=3mm of by] {Application};
+\node[llbl, left=3mm of bz] {Data};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (bx.south) -- (by.north) node[fl,midway]{interfaces};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (by.south) -- (bz.north) node[fl,midway]{interfaces};
 \end{tikzpicture}}
 \caption{Three-tier web architecture}\end{figure}
 External actors: residents and staff (browsers), the city SSO (OIDC), the mapping
-API, and the SMTP relay. X renders UI; Y enforces logic, auth, and integrations; Z
+API, and the SMTP relay. Presentation renders UI; Application enforces logic, auth, and integrations; Data
 persists data.
 
 \section{Subsystem Definitions \& Data Flow}
@@ -101,15 +101,15 @@ persists data.
 \begin{tikzpicture}
 \node[ext] (res) at (0,1.5) {Resident};
 \node[ext] (staff) at (0,-1.5) {Staff};
-\node[mod] (xrp) at (3.3,1.5) {X.ResidentPortal};
-\node[mod] (xsd) at (3.3,-1.5) {X.StaffDashboard};
-\node[mod] (yapi) at (6.9,0) {Y.APIGateway};
+\node[mod] (xrp) at (3.3,1.5) {Presentation.ResidentPortal};
+\node[mod] (xsd) at (3.3,-1.5) {Presentation.StaffDashboard};
+\node[mod] (yapi) at (6.9,0) {Application.APIGateway};
 \node[ext] (sso) at (6.9,2.5) {City SSO (OIDC)};
-\node[mod] (yreq) at (10.6,0) {Y.RequestService};
-\node[mod] (ynot) at (10.6,-2.6) {Y.Notification Service};
-\node[mod] (zds) at (14.6,1.5) {Z.Datastore};
-\node[mod] (zos) at (14.6,0.2) {Z.ObjectStore};
-\node[mod] (zint) at (14.6,-1.1) {Z.Integrations};
+\node[mod] (yreq) at (10.6,0) {Application.RequestService};
+\node[mod] (ynot) at (10.6,-2.6) {Application.Notification Service};
+\node[mod] (zds) at (14.6,1.5) {Data.Datastore};
+\node[mod] (zos) at (14.6,0.2) {Data.ObjectStore};
+\node[mod] (zint) at (14.6,-1.1) {Data.Integrations};
 \node[ext] (smtp) at (14.6,-2.6) {SMTP relay};
 \node[ext] (mapapi) at (18.4,-1.1) {Mapping API};
 \draw[flow] (res) -- (xrp) node[fl,pos=0.5]{submit / track};
@@ -127,40 +127,40 @@ persists data.
 \end{tikzpicture}}
 \caption{Browser $\rightarrow$ API $\rightarrow$ services $\rightarrow$ datastore/integrations}\end{figure}
 
-\section{X Layer Subsystems --- Presentation}
-\subsection{X.ResidentPortal}
+\section{Presentation Layer}
+\subsection{Presentation.ResidentPortal}
 \textbf{Responsibilities:} public SPA for submit/track (FR-01, FR-02), map picker
 (EI-02), accessible/responsive (US-01).
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#01 & Public REST calls & form data & request id, status \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{X.StaffDashboard}
+\subsection{Presentation.StaffDashboard}
 \textbf{Responsibilities:} authenticated SPA for triage/assignment/status (FR-03,
 FR-04); RBAC-aware UI (SE-01).
 
-\section{Y Layer Subsystems --- Application}
-\subsection{Y.APIGateway}
+\section{Application Layer}
+\subsection{Application.APIGateway}
 \textbf{Responsibilities:} single REST entry, TLS termination, OIDC validation, RBAC
 enforcement (SE-01).
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#02 & Authenticated API & requests + token & authorized calls \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{Y.RequestService}
+\subsection{Application.RequestService}
 \textbf{Responsibilities:} request lifecycle, triage, assignment, status history
 (FR-01--FR-04); duplicate detection (FR-05).
-\subsection{Y.NotificationService}
+\subsection{Application.NotificationService}
 \textbf{Responsibilities:} send status emails via SMTP on status change (FR-04).
 
-\section{Z Layer Subsystems --- Data}
-\subsection{Z.Datastore}
+\section{Data Layer}
+\subsection{Data.Datastore}
 \textbf{Responsibilities:} PostgreSQL + PostGIS for requests, users, audit, and
 geospatial queries (FR-05 radius). \textbf{Deployment:} managed DB in the cloud
 project.
-\subsection{Z.ObjectStore}
+\subsection{Data.ObjectStore}
 \textbf{Responsibilities:} store request photos.
-\subsection{Z.Integrations}
+\subsection{Data.Integrations}
 \textbf{Responsibilities:} adapters for the geocoding API and SMTP relay, isolating
 external dependencies behind stable interfaces.
 
@@ -178,12 +178,12 @@ accounts (more risk, poor fit). \textbf{Consequences:} depends on SSO availabili
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{2cm} | p{5.5cm} | p{5cm} |}\hline
 \textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Realizing subsystem(s)} \\ \hline
-FR-01/02 & Submit/track & X.ResidentPortal, Y.RequestService \\ \hline
-FR-03 & Triage/assign & X.StaffDashboard, Y.RequestService \\ \hline
-FR-04 & Status + notify & Y.RequestService, Y.NotificationService \\ \hline
-FR-05 & Duplicate detection & Y.RequestService, Z.Datastore \\ \hline
-SE-01 & RBAC + TLS & Y.APIGateway \\ \hline
-EI-01 & City SSO & Y.APIGateway \\ \hline
+FR-01/02 & Submit/track & Presentation.ResidentPortal, Application.RequestService \\ \hline
+FR-03 & Triage/assign & Presentation.StaffDashboard, Application.RequestService \\ \hline
+FR-04 & Status + notify & Application.RequestService, Application.NotificationService \\ \hline
+FR-05 & Duplicate detection & Application.RequestService, Data.Datastore \\ \hline
+SE-01 & RBAC + TLS & Application.APIGateway \\ \hline
+EI-01 & City SSO & Application.APIGateway \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \bibliographystyle{reference/IEEEtran_custom}

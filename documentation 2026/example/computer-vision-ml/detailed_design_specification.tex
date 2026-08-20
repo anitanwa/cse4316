@@ -49,7 +49,7 @@
 
 \section{Introduction}
 Implementation-level design of \productname\ as an IEEE 1016-2009 \cite{IEEE1016}
-Software Design Description, building on the SRS and ADS (layers X/Y/Z).
+Software Design Description, building on the SRS and ADS (layers Ingestion, Recognition, Service).
 
 \section{Design Stakeholders \& Concerns}
 Implementers, integrators, testers, maintainers; concerns of composition, data,
@@ -63,16 +63,16 @@ Resource viewpoints per IEEE 1016; irrelevant viewpoints omitted per subsystem.
 \begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
 \node[ext] (scan) at (0,0) {Scan workflow};
-\node[mod] (xin)  at (3.3,1.6) {X.Intake};
-\node[mod] (xpre) at (3.3,0)   {X.Preprocess};
-\node[mod] (xseg) at (3.3,-1.6){X.Segment};
-\node[mod] (yrec) at (7.2,1.6) {Y.Recognizer};
-\node[mod] (ycal) at (7.2,0)   {Y.Calibration};
-\node[mod] (yrou) at (7.2,-1.6){Y.Router};
-\node[mod] (zapi) at (11.6,3.1){Z.API};
-\node[mod] (zsto) at (11.6,1.6){Z.Store};
-\node[mod] (zrev) at (11.6,0)  {Z.ReviewUI};
-\node[mod] (zaud) at (11.6,-1.6){Z.Audit};
+\node[mod] (xin)  at (3.3,1.6) {Ingestion.Intake};
+\node[mod] (xpre) at (3.3,0)   {Ingestion.Preprocess};
+\node[mod] (xseg) at (3.3,-1.6){Ingestion.Segment};
+\node[mod] (yrec) at (7.2,1.6) {Recognition.Recognizer};
+\node[mod] (ycal) at (7.2,0)   {Recognition.Calibration};
+\node[mod] (yrou) at (7.2,-1.6){Recognition.Router};
+\node[mod] (zapi) at (11.6,3.1){Service.API};
+\node[mod] (zsto) at (11.6,1.6){Service.Store};
+\node[mod] (zrev) at (11.6,0)  {Service.ReviewUI};
+\node[mod] (zaud) at (11.6,-1.6){Service.Audit};
 \node[ext] (clerk) at (15.4,0) {Clerk};
 \node[ext] (recdb) at (15.4,3.1){Records DB};
 \draw[flow] (scan) -- (xin) node[fl,pos=0.55]{form image};
@@ -93,10 +93,10 @@ Resource viewpoints per IEEE 1016; irrelevant viewpoints omitted per subsystem.
 Deployed as Docker containers on an on-prem Linux host with a message queue
 (RabbitMQ) between stages and PostgreSQL + object storage for persistence.
 
-\section{X Layer Subsystems --- Ingestion \& Preprocessing}
+\section{Ingestion \& Preprocessing Layer}
 \subsection{Layer Resources}
 \textbf{OS/Deps:} Linux, Python, OpenCV, Pillow; \textbf{Language:} Python.
-\subsection{X.Segment}
+\subsection{Ingestion.Segment}
 \textbf{Composition:} a worker consuming preprocessed pages.
 \textbf{Information:} \texttt{Field\{form\_id, field\_id, bbox, crop[]\}}.
 \textbf{Interface (\#01 chain):} in preprocessed page; out field crops to queue.
@@ -104,44 +104,44 @@ Deployed as Docker containers on an on-prem Linux host with a message queue
 crop fixed field boxes; reject pages whose alignment residual exceeds a threshold.
 \textbf{Rationale:} deterministic and testable for a fixed template (AD-01).
 
-\section{Y Layer Subsystems --- Recognition \& Analytics}
+\section{Recognition \& Analytics Layer}
 \subsection{Layer Resources}
 \textbf{Deps:} PyTorch, NumPy; \textbf{Language:} Python; GPU optional.
-\subsection{Y.Recognizer}
+\subsection{Recognition.Recognizer}
 \textbf{Information:} input \texttt{Field}; output
 \texttt{Prediction\{value, logits[], model\_version, data\_hash\}} (MS-01).
 \textbf{Interface (\#02):} in field crops; out predictions.
 \textbf{Algorithm:} a small CNN (LeNet/MobileNet-class) over per-digit crops; the
 field value is the ordered concatenation of per-digit argmax. \textbf{Resource:}
 model artifact loaded from a versioned path (QA-01).
-\subsection{Y.Calibration \& Y.Router}
-\textbf{Y.Calibration:} temperature-scaled softmax fit on a held-out set converts
-logits to a calibrated field confidence. \textbf{Y.Router:} \texttt{if conf $\geq$
+\subsection{Recognition.Calibration \& Recognition.Router}
+\textbf{Recognition.Calibration:} temperature-scaled softmax fit on a held-out set converts
+logits to a calibrated field confidence. \textbf{Recognition.Router:} \texttt{if conf $\geq$
 threshold: accept else: enqueue\_review} (FR-03); threshold in config.
 
-\section{Z Layer Subsystems --- Service, Storage \& Review}
+\section{Service, Storage \& Review Layer}
 \subsection{Layer Resources}
 \textbf{Deps:} FastAPI, PostgreSQL, React (review UI); \textbf{Languages:} Python,
 TypeScript.
-\subsection{Z.API \& Z.Store}
+\subsection{Service.API \& Service.Store}
 \textbf{Interface:} \texttt{POST /forms} (EI-01), \texttt{GET /jobs/\{id\}},
 \texttt{GET /export}. \textbf{Information:} \texttt{Record\{form\_id, field\_id,
 value, source:auto/reviewed, model\_version, reviewer\_id?\}} in PostgreSQL;
 images in on-prem object storage (SE-01). Authentication via the on-prem IdP (SE-02).
-\subsection{Z.ReviewUI \& Z.Audit}
-\textbf{Z.ReviewUI:} React screen showing crop + proposed value with keyboard
-confirm/correct (FR-04, US-01). \textbf{Z.Audit:} append-only \texttt{audit} table;
+\subsection{Service.ReviewUI \& Service.Audit}
+\textbf{Service.ReviewUI:} React screen showing crop + proposed value with keyboard
+confirm/correct (FR-04, US-01). \textbf{Service.Audit:} append-only \texttt{audit} table;
 every decision writes \texttt{\{who, when, field, old, new\}} (FR-05).
 
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1.6cm} | p{5cm} | p{3.4cm} | p{1.6cm} |}\hline
 \textbf{Req} & \textbf{Requirement (abbrev.)} & \textbf{Component} & \textbf{Iface} \\ \hline
-FR-01 & Field segmentation & X.Segment & \#01 \\ \hline
-FR-02 & Recognition+conf & Y.Recognizer, Y.Calibration & \#02 \\ \hline
-FR-03 & Routing & Y.Router & --- \\ \hline
-FR-04 & Review & Z.ReviewUI & --- \\ \hline
-FR-05 & Export/audit & Z.API, Z.Audit & \#exp \\ \hline
-MS-01 & Model versioning & Y.Recognizer, Z.Store & --- \\ \hline
+FR-01 & Field segmentation & Ingestion.Segment & \#01 \\ \hline
+FR-02 & Recognition+conf & Recognition.Recognizer, Recognition.Calibration & \#02 \\ \hline
+FR-03 & Routing & Recognition.Router & --- \\ \hline
+FR-04 & Review & Service.ReviewUI & --- \\ \hline
+FR-05 & Export/audit & Service.API, Service.Audit & \#exp \\ \hline
+MS-01 & Model versioning & Recognition.Recognizer, Service.Store & --- \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \section{Appendix A}

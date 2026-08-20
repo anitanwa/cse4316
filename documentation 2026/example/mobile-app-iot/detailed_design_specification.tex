@@ -49,7 +49,7 @@
 
 \section{Introduction}
 Implementation-level design of \productname\ as an IEEE 1016-2009 \cite{IEEE1016}
-Software Design Description, building on the SRS and ADS (layers X/Y/Z).
+Software Design Description, building on the SRS and ADS (layers Device, App, Cloud).
 
 \section{Design Stakeholders \& Concerns}
 Firmware/app/cloud implementers, integrators, testers, support; concerns of
@@ -62,15 +62,15 @@ Resource per IEEE 1016; omitted where not applicable.
 \section{System Overview}
 \begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
-\node[mod] (xsens) at (2.6,0.8) {X.Sensing};
-\node[mod] (xble)  at (2.6,-0.8){X.BLEPeripheral};
-\node[mod] (ybc)  at (6.4,2.4) {Y.BLECentral};
-\node[mod] (yae)  at (6.4,0.8) {Y.AlertEngine};
-\node[mod] (yls)  at (6.4,-0.8){Y.LocalStore};
-\node[mod] (yui)  at (6.4,-2.4){Y.UI};
-\node[mod] (zpush) at (10.2,2.4){Z.PushService};
-\node[mod] (zapi)  at (10.2,0.8){Z.AccountAPI};
-\node[mod] (zhist) at (10.2,-0.8){Z.HistoryStore};
+\node[mod] (xsens) at (2.6,0.8) {Device.Sensing};
+\node[mod] (xble)  at (2.6,-0.8){Device.BLEPeripheral};
+\node[mod] (ybc)  at (6.4,2.4) {App.BLECentral};
+\node[mod] (yae)  at (6.4,0.8) {App.AlertEngine};
+\node[mod] (yls)  at (6.4,-0.8){App.LocalStore};
+\node[mod] (yui)  at (6.4,-2.4){App.UI};
+\node[mod] (zpush) at (10.2,2.4){Cloud.PushService};
+\node[mod] (zapi)  at (10.2,0.8){Cloud.AccountAPI};
+\node[mod] (zhist) at (10.2,-0.8){Cloud.HistoryStore};
 \node[ext] (apns) at (13.9,2.4){APNs / FCM};
 \node[ext] (home) at (13.9,-2.4){Homeowner};
 \draw[flow] (xsens) -- (xble) node[fl,pos=0.5]{reading};
@@ -89,58 +89,58 @@ Resource per IEEE 1016; omitted where not applicable.
 Device: nRF52-class MCU with integrated BLE (C/Zephyr). App: Flutter (Dart) for
 iOS/Android parity. Cloud: a small serverless API + managed DB + APNs/FCM.
 
-\section{X Layer Subsystems --- Sensor Device}
+\section{Sensor Device Layer}
 \subsection{Layer Resources}
 \textbf{Hardware:} nRF52 MCU + BLE, capacitive moisture pad, flow sensor, coin/AA
 battery. \textbf{OS:} Zephyr RTOS. \textbf{Language:} C.
-\subsection{X.Sensing}
+\subsection{Device.Sensing}
 \textbf{Information:} \texttt{Reading\{ts, moisture, flow, battery\_mV\}}.
 \textbf{Algorithm:} periodic ADC sample; a debounced threshold with hysteresis
 raises \texttt{leak=true} (FR-01); duty-cycled to meet PE-01. \textbf{State:}
 \texttt{IDLE$\rightarrow$SAMPLING$\rightarrow$LEAK} with cooldown.
-\subsection{X.BLEPeripheral}
+\subsection{Device.BLEPeripheral}
 \textbf{Interface (\#01, GATT):} \texttt{svc AquaGuard}: char \texttt{reading}
 (notify), \texttt{leak} (notify), \texttt{threshold} (read/write), \texttt{battery}
 (read). \textbf{Interaction:} bonded, encrypted connections only (SE-01); advertises
 when idle. \textbf{Rationale:} standard GATT keeps the app contract simple (AD-01).
 
-\section{Y Layer Subsystems --- Mobile Application}
+\section{Mobile Application Layer}
 \subsection{Layer Resources}
 \textbf{Deps:} Flutter, a BLE plugin, a push plugin, local DB (SQLite);
 \textbf{Language:} Dart. \textbf{Platforms:} iOS + Android (QA-01).
-\subsection{Y.BLECentral}
+\subsection{App.BLECentral}
 \textbf{Interface (\#02):} scan/connect/bond; subscribe \texttt{reading}/\texttt{leak};
 write \texttt{threshold}. \textbf{State:}
 \texttt{DISCONNECTED$\rightarrow$SCANNING$\rightarrow$CONNECTED$\rightarrow$BONDED}
 with auto-reconnect. \textbf{Rationale:} platform BLE-background differences isolated
 here so the rest of the app is platform-agnostic (QA-01).
-\subsection{Y.AlertEngine, Y.UI, Y.LocalStore}
-\textbf{Y.AlertEngine:} on \texttt{leak} while connected, fire local
+\subsection{App.AlertEngine, App.UI, App.LocalStore}
+\textbf{App.AlertEngine:} on \texttt{leak} while connected, fire local
 notification/haptic within 3\,s (FR-03); if disconnected, POST the event to the
-backend for push (FR-04). \textbf{Y.UI:} guided setup wizard, live status, and
-history list (US-01, FR-05). \textbf{Y.LocalStore:} SQLite
+backend for push (FR-04). \textbf{App.UI:} guided setup wizard, live status, and
+history list (US-01, FR-05). \textbf{App.LocalStore:} SQLite
 \texttt{events\{ts, type, value\}} and \texttt{config}.
 
-\section{Z Layer Subsystems --- Cloud Services}
+\section{Cloud Services Layer}
 \subsection{Layer Resources}
 \textbf{Tech:} serverless functions + managed DB; \textbf{Language:} TypeScript.
-\subsection{Z.AccountAPI \& Z.HistoryStore}
+\subsection{Cloud.AccountAPI \& Cloud.HistoryStore}
 \textbf{Interface:} \texttt{POST /events}, \texttt{GET /events}, device/user
 registration over TLS 1.3 (SE-01). \textbf{Information:}
 \texttt{Event\{device\_id, ts, type, value\}} in the managed DB (FR-05).
-\subsection{Z.PushService}
+\subsection{Cloud.PushService}
 On event ingest, look up the user's device token and send via APNs/FCM (EI-02,
 FR-04); delivery failures retried and logged (MS-01).
 
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1.6cm} | p{5cm} | p{3.4cm} | p{1.6cm} |}\hline
 \textbf{Req} & \textbf{Requirement (abbrev.)} & \textbf{Component} & \textbf{Iface} \\ \hline
-FR-01 & Leak detection & X.Sensing & \#01 \\ \hline
-FR-02 & Pair/config & Y.BLECentral, X.BLEPeripheral & \#02/\#01 \\ \hline
-FR-03 & Local alert & Y.AlertEngine & --- \\ \hline
-FR-04 & Remote alert & Z.PushService & --- \\ \hline
-FR-05 & History & Y.LocalStore, Z.HistoryStore & --- \\ \hline
-SE-01 & Secure pair/TLS & X.BLEPeripheral, Z.AccountAPI & \#01 \\ \hline
+FR-01 & Leak detection & Device.Sensing & \#01 \\ \hline
+FR-02 & Pair/config & App.BLECentral, Device.BLEPeripheral & \#02/\#01 \\ \hline
+FR-03 & Local alert & App.AlertEngine & --- \\ \hline
+FR-04 & Remote alert & Cloud.PushService & --- \\ \hline
+FR-05 & History & App.LocalStore, Cloud.HistoryStore & --- \\ \hline
+SE-01 & Secure pair/TLS & Device.BLEPeripheral, Cloud.AccountAPI & \#01 \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \section{Appendix A}

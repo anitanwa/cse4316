@@ -71,43 +71,43 @@ mobile central + cloud, with detection at the edge and alerting split between lo
 \section{System Overview \& Context View}
 \begin{figure}[h!]\centering\resizebox{0.95\textwidth}{!}{%
 \begin{tikzpicture}[node distance=5mm]
-\node[mod] (xsens) {X.Sensing};
-\node[mod, right=of xsens] (xble) {X.BLEPeripheral};
-\node[mod, below=15mm of xsens.west, anchor=west] (ybc) {Y.BLECentral};
-\node[mod, right=of ybc] (yae) {Y.AlertEngine};
-\node[mod, right=of yae] (yui) {Y.UI};
-\node[mod, right=of yui] (yls) {Y.LocalStore};
-\node[mod, below=15mm of ybc.west, anchor=west] (zapi) {Z.AccountAPI};
-\node[mod, right=of zapi] (zpush) {Z.PushService};
-\node[mod, right=of zpush] (zhist) {Z.HistoryStore};
+\node[mod] (xsens) {Device.Sensing};
+\node[mod, right=of xsens] (xble) {Device.BLEPeripheral};
+\node[mod, below=15mm of xsens.west, anchor=west] (ybc) {App.BLECentral};
+\node[mod, right=of ybc] (yae) {App.AlertEngine};
+\node[mod, right=of yae] (yui) {App.UI};
+\node[mod, right=of yui] (yls) {App.LocalStore};
+\node[mod, below=15mm of ybc.west, anchor=west] (zapi) {Cloud.AccountAPI};
+\node[mod, right=of zapi] (zpush) {Cloud.PushService};
+\node[mod, right=of zpush] (zhist) {Cloud.HistoryStore};
 \begin{scope}[on background layer]
 \node[band, fill=blue!5, fit=(xsens)(xble)] (bx) {};
 \node[band, fill=blue!9, fit=(ybc)(yls)] (by) {};
 \node[band, fill=blue!5, fit=(zapi)(zhist)] (bz) {};
 \end{scope}
-\node[llbl, left=3mm of bx] {X\\Sensor\\Device};
-\node[llbl, left=3mm of by] {Y\\Mobile\\Application};
-\node[llbl, left=3mm of bz] {Z\\Cloud\\Services};
+\node[llbl, left=3mm of bx] {Sensor\\Device};
+\node[llbl, left=3mm of by] {Mobile\\Application};
+\node[llbl, left=3mm of bz] {Cloud\\Services};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (bx.south) -- (by.north) node[fl,midway]{BLE};
 \draw[{Latex}-{Latex}, thick, draw=accentcolor!80] (by.south) -- (bz.north) node[fl,midway]{TLS};
 \end{tikzpicture}}
 \caption{Three layers: sensor device, mobile app, cloud services}\end{figure}
 External actors: the homeowner (phone UI) and the platform push services (APNs/FCM).
-X senses and detects; Y connects, alerts locally, and relays; Z provides accounts,
+Device senses and detects; App connects, alerts locally, and relays; Cloud provides accounts,
 history, and remote push.
 
 \section{Subsystem Definitions \& Data Flow}
 \begin{figure}[h!]\centering\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}
-\node[mod] (xsens) at (2.6,0.8) {X.Sensing};
-\node[mod] (xble)  at (2.6,-0.8){X.BLEPeripheral};
-\node[mod] (ybc)  at (6.4,2.4) {Y.BLECentral};
-\node[mod] (yae)  at (6.4,0.8) {Y.AlertEngine};
-\node[mod] (yls)  at (6.4,-0.8){Y.LocalStore};
-\node[mod] (yui)  at (6.4,-2.4){Y.UI};
-\node[mod] (zpush) at (10.2,2.4){Z.PushService};
-\node[mod] (zapi)  at (10.2,0.8){Z.AccountAPI};
-\node[mod] (zhist) at (10.2,-0.8){Z.HistoryStore};
+\node[mod] (xsens) at (2.6,0.8) {Device.Sensing};
+\node[mod] (xble)  at (2.6,-0.8){Device.BLEPeripheral};
+\node[mod] (ybc)  at (6.4,2.4) {App.BLECentral};
+\node[mod] (yae)  at (6.4,0.8) {App.AlertEngine};
+\node[mod] (yls)  at (6.4,-0.8){App.LocalStore};
+\node[mod] (yui)  at (6.4,-2.4){App.UI};
+\node[mod] (zpush) at (10.2,2.4){Cloud.PushService};
+\node[mod] (zapi)  at (10.2,0.8){Cloud.AccountAPI};
+\node[mod] (zhist) at (10.2,-0.8){Cloud.HistoryStore};
 \node[ext] (apns) at (13.9,2.4){APNs / FCM};
 \node[ext] (home) at (13.9,-2.4){Homeowner};
 \draw[flow] (xsens) -- (xble) node[fl,pos=0.5]{reading};
@@ -124,42 +124,42 @@ history, and remote push.
 \end{tikzpicture}}
 \caption{Sensor $\rightarrow$ BLE $\rightarrow$ app $\rightarrow$ (local alert) / cloud $\rightarrow$ push}\end{figure}
 
-\section{X Layer Subsystems --- Sensor Device}
-\subsection{X.Sensing}
+\section{Sensor Device Layer}
+\subsection{Device.Sensing}
 \textbf{Responsibilities:} sample moisture/flow and run on-device threshold detection
 (FR-01) at low power (PE-01).
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#01 & Sensor sampling & moisture/flow & reading, leak flag \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{X.BLEPeripheral}
+\subsection{Device.BLEPeripheral}
 \textbf{Responsibilities:} expose the GATT profile (EI-01) --- live reading, leak
 notify, threshold config, battery --- and manage bonded, encrypted links (SE-01).
 \textbf{Rationale:} on-device detection keeps alerting working even if the phone is
 briefly away and saves radio energy (AD-01).
 
-\section{Y Layer Subsystems --- Mobile Application}
-\subsection{Y.BLECentral}
+\section{Mobile Application Layer}
+\subsection{App.BLECentral}
 \textbf{Responsibilities:} scan, pair/bond, subscribe to notifications, read/write
 config (FR-02).
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{1cm} | p{6cm} | p{2.6cm} | p{2.6cm} |}\hline
 ID & Description & Inputs & Outputs \\ \hline
 \#02 & BLE central link & GATT notifications & events, config writes \\ \hline
 \end{tabular}\end{center}\end{table}
-\subsection{Y.AlertEngine}
+\subsection{App.AlertEngine}
 \textbf{Responsibilities:} raise local visual/audible/haptic alerts (FR-03) and
 forward events to the backend for remote push when disconnected (FR-04).
-\subsection{Y.UI \& Y.LocalStore}
-\textbf{Y.UI:} guided setup, live status, history (US-01, FR-05). \textbf{Y.LocalStore:}
+\subsection{App.UI \& App.LocalStore}
+\textbf{App.UI:} guided setup, live status, history (US-01, FR-05). \textbf{App.LocalStore:}
 on-device event/config cache; source for offline history.
 
-\section{Z Layer Subsystems --- Cloud Services}
-\subsection{Z.AccountAPI}
+\section{Cloud Services Layer}
+\subsection{Cloud.AccountAPI}
 \textbf{Responsibilities:} device registration, user account, event ingestion over
 TLS (SE-01). \textbf{Deployment:} small managed backend + database.
-\subsection{Z.PushService}
+\subsection{Cloud.PushService}
 \textbf{Responsibilities:} deliver alerts via APNs/FCM (EI-02, FR-04).
-\subsection{Z.HistoryStore}
+\subsection{Cloud.HistoryStore}
 \textbf{Responsibilities:} durable event history (FR-05) synced with the app.
 
 \section{Architecture Decisions \& Rationale}
@@ -176,12 +176,12 @@ BLE-only (no reach when away). \textbf{Consequences:} two paths to test. \textbf
 \section{Requirements Traceability}
 \begin{table}[H]\begin{center}\begin{tabular}{ | p{2cm} | p{5.5cm} | p{5cm} |}\hline
 \textbf{Req ID} & \textbf{Requirement (abbrev.)} & \textbf{Realizing subsystem(s)} \\ \hline
-FR-01 & Leak detection & X.Sensing \\ \hline
-FR-02 & Pairing/config & Y.BLECentral, X.BLEPeripheral \\ \hline
-FR-03 & Local alert & Y.AlertEngine \\ \hline
-FR-04 & Remote alert & Y.AlertEngine, Z.PushService \\ \hline
-FR-05 & History & Y.LocalStore, Z.HistoryStore \\ \hline
-SE-01 & Secure pairing/TLS & X.BLEPeripheral, Z.AccountAPI \\ \hline
+FR-01 & Leak detection & Device.Sensing \\ \hline
+FR-02 & Pairing/config & App.BLECentral, Device.BLEPeripheral \\ \hline
+FR-03 & Local alert & App.AlertEngine \\ \hline
+FR-04 & Remote alert & App.AlertEngine, Cloud.PushService \\ \hline
+FR-05 & History & App.LocalStore, Cloud.HistoryStore \\ \hline
+SE-01 & Secure pairing/TLS & Device.BLEPeripheral, Cloud.AccountAPI \\ \hline
 \end{tabular}\end{center}\end{table}
 
 \bibliographystyle{reference/IEEEtran_custom}
